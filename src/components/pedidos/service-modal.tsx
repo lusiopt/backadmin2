@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { ServiceWithRelations, ServiceStatus, Permission, CreateMessageInput, Message, MessageType, MessageStatus } from "@/lib/types";
 import { useServices } from "@/contexts/ServicesContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,8 +19,12 @@ interface ServiceModalProps {
   onClose: () => void;
 }
 
-export function ServiceModal({ service: initialService, open, onClose }: ServiceModalProps) {
+export const ServiceModal = memo(function ServiceModal({ service: initialService, open, onClose }: ServiceModalProps) {
   const { getService, updateService } = useServices();
+
+  // Ref para evitar re-renders desnecessários no useEffect
+  const updateServiceRef = useRef(updateService);
+  updateServiceRef.current = updateService;
   const { user, hasPermission } = useAuth();
   const service = getService(initialService.id) || initialService;
 
@@ -148,10 +152,11 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
             : m
         );
 
-        updateService(service.id, { messages: updatedMessages });
+        // Usar ref para evitar dependência de updateService
+        updateServiceRef.current(service.id, { messages: updatedMessages });
       }
     }
-  }, [activeTab, service.id, service.messages, user, updateService]);
+  }, [activeTab, service.id, service.messages, user]);
 
   const handleAddIRN = () => {
     if (!entity || !reference) {
@@ -947,4 +952,4 @@ export function ServiceModal({ service: initialService, open, onClose }: Service
       )}
     </>
   );
-}
+});
