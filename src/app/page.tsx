@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useServices } from "@/hooks/services";
@@ -9,11 +9,9 @@ import { Service, ServiceStatus, ServiceWithRelations, Permission } from "@/lib/
 import { StatusBadge } from "@/components/pedidos/status-badge";
 import { ServiceModal } from "@/components/pedidos/service-modal";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { formatDate } from "@/lib/utils";
 import { ProfileSwitcher } from "@/components/ProfileSwitcher";
 import { NotificationPanel } from "@/components/NotificationPanel";
-import { MobileServiceCard } from "@/components/tables/MobileServiceCard";
+import { ListView, ByUserView } from "@/components/views";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useLogout } from "@/hooks/auth";
@@ -24,11 +22,6 @@ import {
   Search,
   LogOut,
   ChevronDown,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  ChevronLeft,
-  ChevronRight,
   MessageSquare
 } from "lucide-react";
 
@@ -119,16 +112,6 @@ export default function DashboardPage() {
       setSortDirection('asc');
     }
     setCurrentPage(1);
-  };
-
-  // Render sort icon
-  const renderSortIcon = (column: 'name' | 'email' | 'status' | 'createdAt') => {
-    if (sortColumn !== column) {
-      return <ArrowUpDown className="w-4 h-4 text-gray-400" />;
-    }
-    return sortDirection === 'asc'
-      ? <ArrowUp className="w-4 h-4 text-blue-600" />
-      : <ArrowDown className="w-4 h-4 text-blue-600" />;
   };
 
   const handleServiceClick = (service: ServiceWithRelations) => {
@@ -497,411 +480,33 @@ export default function DashboardPage() {
       {/* Main Content */}
       <div className="p-4 sm:p-8">
         {viewMode === "list" ? (
-          <>
-            {/* List View */}
-            <div className="mb-4 sm:mb-6 flex items-center justify-between">
-              <h2 className="text-xl sm:text-2xl font-bold">
-                Processos ({totalCount})
-              </h2>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Items por página:</span>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Desktop Table View - Hidden on mobile */}
-            <Card className="hidden lg:block">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="border-b bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('name')}
-                          className="flex items-center gap-2 hover:text-gray-900 transition-colors"
-                        >
-                          Nome
-                          {renderSortIcon('name')}
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('email')}
-                          className="flex items-center gap-2 hover:text-gray-900 transition-colors"
-                        >
-                          Email
-                          {renderSortIcon('email')}
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('status')}
-                          className="flex items-center gap-2 hover:text-gray-900 transition-colors"
-                        >
-                          Status
-                          {renderSortIcon('status')}
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('createdAt')}
-                          className="flex items-center gap-2 hover:text-gray-900 transition-colors"
-                        >
-                          Criado Em
-                          {renderSortIcon('createdAt')}
-                        </button>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Ações
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">
-                    {paginatedServices.map((service) => (
-                      <tr
-                        key={service.id}
-                        className="hover:bg-gray-50 cursor-pointer"
-                        onClick={() => handleServiceClick(service as ServiceWithRelations)}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500 font-mono">
-                            {service.id}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {service.user?.fullName || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {service.user?.email ? (
-                            <a
-                              href={`mailto:${service.user.email}`}
-                              className="text-sm text-blue-600 hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {service.user.email}
-                            </a>
-                          ) : (
-                            <span className="text-sm text-gray-400">N/A</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <StatusBadge status={service.status} />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-600">
-                            {formatDate(service.createdAt)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {hasPermission(Permission.VIEW_SERVICES) && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleServiceClick(service as ServiceWithRelations);
-                              }}
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium relative inline-flex items-center gap-2"
-                            >
-                              Ver Detalhes
-                              {getUnreadMessagesCount(service) > 0 && (
-                                <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-red-500 text-white rounded-full">
-                                  {getUnreadMessagesCount(service)}
-                                </span>
-                              )}
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                {totalCount === 0 && (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">
-                      Nenhum processo encontrado
-                    </p>
-                    <p className="text-gray-400 text-sm mt-2">
-                      Tente ajustar os filtros ou a busca
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Pagination Controls */}
-              {totalCount > 0 && (
-                <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
-                    Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, totalCount)} de {totalCount} resultados
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Anterior
-                    </button>
-
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(page => {
-                          // Show first page, last page, current page, and pages around current
-                          return page === 1 ||
-                                 page === totalPages ||
-                                 (page >= currentPage - 1 && page <= currentPage + 1);
-                        })
-                        .map((page, index, array) => {
-                          // Add ellipsis if there's a gap
-                          const showEllipsisBefore = index > 0 && page - array[index - 1] > 1;
-
-                          return (
-                            <div key={page} className="flex items-center gap-1">
-                              {showEllipsisBefore && (
-                                <span className="px-2 text-gray-400">...</span>
-                              )}
-                              <button
-                                onClick={() => setCurrentPage(page)}
-                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                  currentPage === page
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                              >
-                                {page}
-                              </button>
-                            </div>
-                          );
-                        })}
-                    </div>
-
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      Próxima
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </Card>
-
-            {/* Mobile Cards View - Hidden on desktop */}
-            <div className="lg:hidden space-y-3">
-              {paginatedServices.map((service) => (
-                <MobileServiceCard
-                  key={service.id}
-                  service={service}
-                  onViewDetails={() => handleServiceClick(service as ServiceWithRelations)}
-                  hasViewPermission={hasPermission(Permission.VIEW_SERVICES)}
-                  unreadCount={getUnreadMessagesCount(service)}
-                />
-              ))}
-
-              {totalCount === 0 && (
-                <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-                  <p className="text-gray-500 text-lg">
-                    Nenhum processo encontrado
-                  </p>
-                  <p className="text-gray-400 text-sm mt-2">
-                    Tente ajustar os filtros ou a busca
-                  </p>
-                </div>
-              )}
-
-              {/* Pagination Mobile */}
-              {totalCount > 0 && (
-                <div className="bg-white rounded-lg border border-gray-200 p-4">
-                  <div className="text-sm text-gray-600 text-center mb-3">
-                    Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, totalCount)} de {totalCount}
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Anterior
-                    </button>
-
-                    <span className="px-3 py-2 text-sm font-medium text-gray-700">
-                      {currentPage} / {totalPages}
-                    </span>
-
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                      Próxima
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
+          <ListView
+            services={paginatedServices}
+            totalCount={totalCount}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onItemsPerPageChange={(value) => {
+              setItemsPerPage(value);
+              setCurrentPage(1);
+            }}
+            onPageChange={setCurrentPage}
+            onServiceClick={handleServiceClick}
+            onSort={handleSort}
+            hasViewPermission={hasPermission(Permission.VIEW_SERVICES)}
+            getUnreadMessagesCount={getUnreadMessagesCount}
+          />
         ) : (
-          <>
-            {/* By User View */}
-            <div className="mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold">
-                Por Usuário ({servicesByUser.length} usuários)
-              </h2>
-            </div>
-
-            <div className="space-y-4">
-              {servicesByUser.map((userGroup) => {
-                if (!userGroup.user) return null;
-                const isExpanded = expandedUsers.has(userGroup.user.id);
-
-                return (
-                  <Card key={userGroup.user.id} className="overflow-hidden">
-                    {/* User Header - Clickable */}
-                    <div
-                      className="bg-gray-50 px-6 py-4 border-b cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => toggleUserExpand(userGroup.user?.id || '')}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                            {userGroup.user?.fullName?.charAt(0).toUpperCase() || 'U'}
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              {userGroup.user?.fullName || 'N/A'}
-                            </h3>
-                            {userGroup.user?.email ? (
-                              <a
-                                href={`mailto:${userGroup.user.email}`}
-                                className="text-sm text-blue-600 hover:underline"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {userGroup.user.email}
-                              </a>
-                            ) : (
-                              <span className="text-sm text-gray-400">N/A</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-gray-900">
-                              {userGroup.totalServices}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {userGroup.totalServices === 1 ? "processo" : "processos"}
-                            </div>
-                          </div>
-                          <ChevronDown
-                            className={`w-5 h-5 text-gray-400 transition-transform ${
-                              isExpanded ? 'rotate-180' : ''
-                            }`}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Services Table - Collapsible */}
-                    {isExpanded && (
-                      <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="border-b bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            ID
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Criado Em
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Ações
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200 bg-white">
-                        {userGroup.services.map((service) => (
-                          <tr
-                            key={service.id}
-                            className="hover:bg-gray-50 cursor-pointer"
-                            onClick={() => setSelectedService(service)}
-                          >
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-500 font-mono">
-                                {service.id}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <StatusBadge status={service.status} />
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-600">
-                                {formatDate(service.createdAt)}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              {hasPermission(Permission.VIEW_SERVICES) && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedService(service);
-                                  }}
-                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium relative inline-flex items-center gap-2"
-                                >
-                                  Ver Detalhes
-                                  {getUnreadMessagesCount(service) > 0 && (
-                                    <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-red-500 text-white rounded-full">
-                                      {getUnreadMessagesCount(service)}
-                                    </span>
-                                  )}
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                      </div>
-                    )}
-                  </Card>
-                );
-              })}
-
-              {servicesByUser.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500 text-lg">
-                    Nenhum usuário encontrado
-                  </p>
-                  <p className="text-gray-400 text-sm mt-2">
-                    Tente ajustar os filtros ou a busca
-                  </p>
-                </div>
-              )}
-            </div>
-          </>
+          <ByUserView
+            servicesByUser={servicesByUser}
+            expandedUsers={expandedUsers}
+            onToggleUser={toggleUserExpand}
+            onServiceClick={handleServiceClick}
+            hasViewPermission={hasPermission(Permission.VIEW_SERVICES)}
+            getUnreadMessagesCount={getUnreadMessagesCount}
+          />
         )}
       </div>
 
