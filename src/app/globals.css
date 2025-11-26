@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+section{
+  @apply bg-darkmode;
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.5s ease-out forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+/* Transições suaves */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Efeitos hover com animação */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 102, 204, 0.2);
+}
+
+.blog-details p, .blog-details hr {
+  @apply mb-8 ;
+}
+
+.blog-details hr {
+  @apply border-dark_border;
+}
+
+.blog-details strong {
+  @apply font-bold dark:text-white;
+}
+
+.blog-details ul {
+  @apply mb-8 list-inside list-disc space-y-3;
+}
+
+.blog-details ol {
+  @apply mb-8 list-inside list-decimal space-y-3;
+}
+
+.blog-details h1 {
+  @apply mb-8 text-3xl font-bold text-midnight_text dark:text-white sm:text-4xl md:text-[40px] md:leading-[1.28];
+}
+
+.blog-details h2 {
+  @apply mb-8 text-2xl font-bold text-midnight_text dark:text-white sm:text-3xl md:text-[35px] md:leading-[1.28];
+}
+
+.blog-details h3 {
+  @apply mb-6 text-2xl font-bold dark:text-white sm:text-[28px] sm:leading-[40px];
+}
+
+/* ========================================
+   WebKit/Safari Specific Fixes (iOS/macOS)
+   ======================================== */
+
+/* Fix para inputs type="date" no Safari/iOS */
+input[type="date"] {
+  /* Remove largura mínima padrão do Safari */
+  min-width: 0 !important;
+  /* Força o input a respeitar o container */
+  max-width: 100% !important;
+}
+
+/* Controla o ícone do calendário no Safari */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  /* Reduz o tamanho do ícone para dar mais espaço ao texto */
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+/* Controla o valor da data exibido */
+input[type="date"]::-webkit-date-and-time-value {
+  /* Permite que o texto quebre se necessário */
+  text-align: left;
+  min-width: 0;
+}
+
+/* Remove spin buttons em inputs numéricos no Safari */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Melhora o comportamento de scroll em dispositivos iOS */
+@supports (-webkit-overflow-scrolling: touch) {
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Previne zoom automático em inputs no iOS Safari */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="number"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

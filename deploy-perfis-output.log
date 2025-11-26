@@ -1,0 +1,60 @@
+[0;34m=== Deploy Backadmin para DEV ===[0m
+
+[0;34m[1/3] Enviando alterações para GitHub...[0m
+ M deploy-output-final.log
+ M src/app/page.tsx
+ M src/contexts/AuthContext.tsx
+ M test-components-screenshot.png
+ M test-components.js
+?? deploy-perfis-output.log
+?? src/app/configuracoes/
+[1;33mHá mudanças não commitadas. Commitando...[0m
+[main ba48143] Deploy para dev - 2025-10-27_09:55:56
+ 7 files changed, 452 insertions(+), 6 deletions(-)
+ create mode 100644 deploy-perfis-output.log
+ create mode 100644 src/app/configuracoes/perfis/page.tsx
+To https://github.com/lusiopt/backadmin.git
+   75db4d6..ba48143  main -> main
+[0;32m✓ Código enviado para GitHub[0m
+
+[0;34m[2/3] Conectando na VPS para fazer deploy...[0m
+Tentando conexão com a VPS...
+[0;34mExecutando deploy na VPS...[0m
+Atualizando código...
+Updating 75db4d6..ba48143
+Fast-forward
+ deploy-output-final.log               |  88 ++++++++++
+ deploy-perfis-output.log              |  11 ++
+ src/app/configuracoes/perfis/page.tsx | 312 ++++++++++++++++++++++++++++++++++
+ src/app/page.tsx                      |   6 +-
+ src/contexts/AuthContext.tsx          |  25 ++-
+ test-components-screenshot.png        | Bin 220969 -> 200548 bytes
+ test-components.js                    |  16 +-
+ 7 files changed, 452 insertions(+), 6 deletions(-)
+ create mode 100644 deploy-perfis-output.log
+ create mode 100644 src/app/configuracoes/perfis/page.tsx
+Instalando dependências...
+
+added 321 packages, and audited 322 packages in 16s
+
+117 packages are looking for funding
+  run `npm fund` for details
+
+8 vulnerabilities (3 low, 3 moderate, 1 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues, run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+Buildando aplicação...
+
+> crypgo_project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.4
+  - Environments: .env.local, .env
+
+   Creating an optimized production build ...

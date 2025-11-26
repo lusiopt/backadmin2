@@ -1,0 +1,92 @@
+[0;34m=== Deploy Backadmin para DEV ===[0m
+
+[0;34m[1/3] Enviando alterações para GitHub...[0m
+ D test-results/.last-run.json
+?? deploy-output.log
+?? test-components-screenshot.png
+?? test-components.js
+[1;33mHá mudanças não commitadas. Commitando...[0m
+[main 2321555] Deploy para dev - 2025-10-27_09:26:20
+ 4 files changed, 47 insertions(+), 4 deletions(-)
+ create mode 100644 deploy-output.log
+ create mode 100644 test-components-screenshot.png
+ create mode 100644 test-components.js
+ delete mode 100644 test-results/.last-run.json
+To https://github.com/lusiopt/backadmin.git
+   c56fc6a..2321555  main -> main
+[0;32m✓ Código enviado para GitHub[0m
+
+[0;34m[2/3] Conectando na VPS para fazer deploy...[0m
+Tentando conexão com a VPS...
+[0;34mExecutando deploy na VPS...[0m
+Atualizando código...
+Updating c56fc6a..2321555
+Fast-forward
+ deploy-output.log              |   8 ++++++++
+ test-components-screenshot.png | Bin 0 -> 220969 bytes
+ test-components.js             |  39 +++++++++++++++++++++++++++++++++++++++
+ test-results/.last-run.json    |   4 ----
+ 4 files changed, 47 insertions(+), 4 deletions(-)
+ create mode 100644 deploy-output.log
+ create mode 100644 test-components-screenshot.png
+ create mode 100644 test-components.js
+ delete mode 100644 test-results/.last-run.json
+Instalando dependências...
+
+added 321 packages, and audited 322 packages in 11s
+
+117 packages are looking for funding
+  run `npm fund` for details
+
+8 vulnerabilities (3 low, 3 moderate, 1 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues, run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+Buildando aplicação...
+
+> crypgo_project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.4
+  - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/6) ...
+   Generating static pages (1/6) 
+   Generating static pages (2/6) 
+   Generating static pages (4/6) 
+ ✓ Generating static pages (6/6)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    21.3 kB         120 kB
+├ ○ /_not-found                          137 B          87.2 kB
+├ ○ /login                               7.58 kB         103 kB
+└ ƒ /pedidos/[id]                        5.72 kB         111 kB
++ First Load JS shared by all            87.1 kB
+  ├ chunks/23-f734debd5d3866ac.js        31.5 kB
+  ├ chunks/fd9d1056-2d60121cfa1e0db0.js  53.6 kB
+  └ other shared chunks (total)          1.9 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+Copiando arquivos estáticos...
+Reiniciando serviço...
+[0;32m✓ Deploy concluído na VPS[0m
+
+[0;34m[3/3] Verificando se o site está acessível...[0m
+[0;32m✅ Site acessível em: https://dev.lusio.market/backadmin[0m
+
+[0;32m=== Deploy Concluído ===[0m
+URL: [0;34mhttps://dev.lusio.market/backadmin[0m
