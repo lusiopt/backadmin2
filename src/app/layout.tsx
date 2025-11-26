@@ -4,12 +4,14 @@ import { ServicesProvider } from "@/contexts/ServicesContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import QueryProvider from "@/providers/QueryProvider";
 import { Toaster } from "react-hot-toast";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 
 const font = DM_Sans({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Backadmin - Lusio Cidadania",
-  description: "Gestão de pedidos de cidadania",
+  description: "Gestao de pedidos de cidadania",
 };
 
 export const viewport = {
@@ -34,22 +36,30 @@ export default function RootLayout({
                 toastOptions={{
                   duration: 4000,
                   style: {
-                    background: '#363636',
-                    color: '#fff',
+                    background: "hsl(var(--card))",
+                    color: "hsl(var(--card-foreground))",
+                    border: "1px solid hsl(var(--border))",
                   },
                   success: {
                     style: {
-                      background: '#10b981',
+                      background: "hsl(142.1 76.2% 36.3%)",
+                      color: "white",
                     },
                   },
                   error: {
                     style: {
-                      background: '#ef4444',
+                      background: "hsl(var(--destructive))",
+                      color: "hsl(var(--destructive-foreground))",
                     },
                   },
                 }}
               />
-              {children}
+              <SidebarProvider>
+                <AppSidebar />
+                <main className="flex-1 flex flex-col min-h-screen w-full">
+                  {children}
+                </main>
+              </SidebarProvider>
             </ServicesProvider>
           </AuthProvider>
         </QueryProvider>

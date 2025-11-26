@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, memo } from "react";
 import { ServiceWithRelations, ServiceStatus, Permission, CreateMessageInput, Message, MessageType, MessageStatus } from "@/lib/types";
 import { useServices } from "@/contexts/ServicesContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/pedidos/status-badge";
 import { Button } from "@/components/ui/button";
@@ -198,14 +198,14 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent onClose={onClose}>
+      <Sheet open={open} onOpenChange={onClose}>
+        <SheetContent side="right" className="w-full sm:max-w-4xl flex flex-col p-0 overflow-hidden">
           {/* Header */}
-          <DialogHeader>
+          <SheetHeader className="px-6 pt-6 pb-4 border-b">
             <div className="flex items-start justify-between pr-8">
               <div>
-                <DialogTitle>{service.user?.fullName || 'N/A'}</DialogTitle>
-                <p className="text-sm text-gray-600 mt-1">{service.user?.email || 'N/A'}</p>
+                <SheetTitle>{service.user?.fullName || 'N/A'}</SheetTitle>
+                <p className="text-sm text-muted-foreground mt-1">{service.user?.email || 'N/A'}</p>
               </div>
               <div className="flex gap-2 items-center">
                 <Badge variant="secondary" className="text-xs">
@@ -214,11 +214,11 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                 <StatusBadge status={service.status} />
               </div>
             </div>
-          </DialogHeader>
+          </SheetHeader>
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="bg-gray-50">
+            <TabsList className="mx-6 mt-4 bg-muted">
               <TabsTrigger value="dados" icon="📋">Dados</TabsTrigger>
               <TabsTrigger value="documentos" icon="📄">Documentos</TabsTrigger>
               <TabsTrigger value="timeline" icon="📅">Histórico</TabsTrigger>
@@ -233,7 +233,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
               <TabsTrigger value="acoes" icon="⚡">Ações</TabsTrigger>
             </TabsList>
 
-            <DialogBody className="max-h-[65vh]">
+            <div className="flex-1 overflow-y-auto px-6">
               {/* TAB: Dados */}
               <TabsContent value="dados" className="space-y-4">
                 <div className="flex items-center justify-between mb-4">
@@ -261,7 +261,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                   {isEditingClient ? (
                     <>
                       <div>
-                        <label className="text-xs text-gray-600 font-medium">Nome</label>
+                        <label className="text-xs text-muted-foreground font-medium">Nome</label>
                         <Input
                           value={editableClient.firstName}
                           onChange={(e) => setEditableClient({...editableClient, firstName: e.target.value})}
@@ -269,7 +269,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-600 font-medium">Sobrenome</label>
+                        <label className="text-xs text-muted-foreground font-medium">Sobrenome</label>
                         <Input
                           value={editableClient.lastName}
                           onChange={(e) => setEditableClient({...editableClient, lastName: e.target.value})}
@@ -277,7 +277,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-600 font-medium">Profissão</label>
+                        <label className="text-xs text-muted-foreground font-medium">Profissão</label>
                         <Input
                           value={editableClient.profession}
                           onChange={(e) => setEditableClient({...editableClient, profession: e.target.value})}
@@ -285,7 +285,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-600 font-medium">Nacionalidade</label>
+                        <label className="text-xs text-muted-foreground font-medium">Nacionalidade</label>
                         <Input
                           value={editableClient.nationality}
                           onChange={(e) => setEditableClient({...editableClient, nationality: e.target.value})}
@@ -293,7 +293,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-600 font-medium">Data Nascimento</label>
+                        <label className="text-xs text-muted-foreground font-medium">Data Nascimento</label>
                         <Input
                           type="date"
                           value={editableClient.birthDate ? new Date(editableClient.birthDate).toISOString().split('T')[0] : ''}
@@ -302,7 +302,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-600 font-medium">Pai</label>
+                        <label className="text-xs text-muted-foreground font-medium">Pai</label>
                         <Input
                           value={editableClient.fatherFullName}
                           onChange={(e) => setEditableClient({...editableClient, fatherFullName: e.target.value})}
@@ -310,7 +310,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="text-xs text-gray-600 font-medium">Mãe</label>
+                        <label className="text-xs text-muted-foreground font-medium">Mãe</label>
                         <Input
                           value={editableClient.motherFullName}
                           onChange={(e) => setEditableClient({...editableClient, motherFullName: e.target.value})}
@@ -336,7 +336,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                         <div><span className="font-medium">Data Alt:</span> {formatDate(service.person.alternativeBirthDate)}</div>
                       )}
                       <div className="col-span-2 border-t pt-2 mt-2">
-                        <p className="text-xs font-semibold text-gray-700 mb-2">Dados dos Pais</p>
+                        <p className="text-xs font-semibold text-muted-foreground mb-2">Dados dos Pais</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                           <div><span className="font-medium">Pai:</span> {service.person?.fatherFullName || "-"}</div>
                           {service.person?.fatherAlternativeNames && (
@@ -459,7 +459,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                 {service.documents && service.documents.length > 0 ? (
                   <div className="space-y-2">
                     {service.documents.map((doc) => (
-                      <div key={doc.id} className="p-3 bg-gray-50 rounded hover:bg-gray-100">
+                      <div key={doc.id} className="p-3 bg-muted rounded hover:bg-muted/80">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 space-y-2">
                             {/* Title and Approval Status */}
@@ -476,13 +476,13 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
 
                             {/* File name (if different from title) */}
                             {doc.title && doc.title !== doc.name && (
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-muted-foreground">
                                 Arquivo: {doc.name}
                               </p>
                             )}
 
                             {/* Document metadata grid */}
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
                               {doc.number && (
                                 <div><span className="font-medium">Número:</span> {doc.number}</div>
                               )}
@@ -526,7 +526,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 py-8 text-center">
+                  <p className="text-sm text-muted-foreground py-8 text-center">
                     Nenhum documento anexado.<br/>
                     Clique em "Adicionar Documentos" para enviar arquivos.
                   </p>
@@ -663,7 +663,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                     // Renderizar lista de eventos
                     if (events.length === 0) {
                       return (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 text-muted-foreground">
                           <p className="text-sm">Nenhum evento registrado ainda</p>
                         </div>
                       );
@@ -672,13 +672,13 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                     return events.map((event, index) => (
                       <div
                         key={index}
-                        className="flex items-start gap-3 p-3 border-l-4 rounded hover:bg-gray-50 transition-colors"
+                        className="flex items-start gap-3 p-3 border-l-4 rounded hover:bg-muted transition-colors"
                         style={{ borderLeftColor: `var(--${event.color}-500)` }}
                       >
                         <span className="text-2xl flex-shrink-0">{event.icon}</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">{event.description}</p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-sm font-medium">{event.description}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
                             {formatDate(event.date.toISOString())}
                           </p>
                         </div>
@@ -714,7 +714,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                 <div className="border rounded p-2">
                   <div className="flex items-center gap-2 mb-1.5">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                      service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? 'bg-green-500 text-white' : 'bg-gray-300'
+                      service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? 'bg-green-500 text-white' : 'bg-muted'
                     }`}>
                       {service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? '✓' : '1'}
                     </div>
@@ -745,7 +745,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                 <div className="border rounded p-2">
                   <div className="flex items-center gap-2 mb-1.5">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                      service.status === ServiceStatus.STEP_8 || service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? 'bg-green-500 text-white' : 'bg-gray-300'
+                      service.status === ServiceStatus.STEP_8 || service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? 'bg-green-500 text-white' : 'bg-muted'
                     }`}>
                       {service.status === ServiceStatus.STEP_8 || service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? '✓' : '2'}
                     </div>
@@ -768,7 +768,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                 <div className="border rounded p-2">
                   <div className="flex items-center gap-2 mb-1.5">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                      service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? 'bg-green-500 text-white' : service.status === ServiceStatus.STEP_8 ? 'bg-yellow-500 text-white animate-pulse' : 'bg-gray-300'
+                      service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? 'bg-green-500 text-white' : service.status === ServiceStatus.STEP_8 ? 'bg-yellow-500 text-white animate-pulse' : 'bg-muted'
                     }`}>
                       {service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? '✓' : '3'}
                     </div>
@@ -799,7 +799,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                 <div className="border rounded p-2">
                   <div className="flex items-center gap-2 mb-1.5">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                      service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ? 'bg-green-500 text-white' : 'bg-gray-300'
+                      service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ? 'bg-green-500 text-white' : 'bg-muted'
                     }`}>
                       {service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ? '✓' : '4'}
                     </div>
@@ -819,7 +819,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                 <div className="border rounded p-2">
                   <div className="flex items-center gap-2 mb-1.5">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                      service.status === ServiceStatus.SUBMITTED ? 'bg-green-500 text-white' : 'bg-gray-300'
+                      service.status === ServiceStatus.SUBMITTED ? 'bg-green-500 text-white' : 'bg-muted'
                     }`}>
                       {service.status === ServiceStatus.SUBMITTED ? '✓' : '5'}
                     </div>
@@ -840,23 +840,23 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                   </>
                 )}
               </TabsContent>
-            </DialogBody>
+            </div>
           </Tabs>
 
-          <DialogFooter>
+          <SheetFooter className="px-6 py-4 border-t">
             <Button onClick={onClose} variant="outline">
               Fechar
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {/* Mini Modals */}
       {showApproveModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
             <h3 className="font-bold text-lg mb-3">Aprovar Documentos?</h3>
-            <p className="text-sm text-gray-600 mb-4">Cliente receberá email de confirmação.</p>
+            <p className="text-sm text-muted-foreground mb-4">Cliente receberá email de confirmação.</p>
             <div className="flex gap-2">
               <Button onClick={handleApprove} className="flex-1 bg-green-600 hover:bg-green-700">Confirmar</Button>
               <Button onClick={() => setShowApproveModal(false)} variant="outline" className="flex-1">Cancelar</Button>
@@ -869,7 +869,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
             <h3 className="font-bold text-lg mb-3">Quase Lá</h3>
-            <p className="text-sm text-gray-600 mb-2">Explique o que falta:</p>
+            <p className="text-sm text-muted-foreground mb-2">Explique o que falta:</p>
             <textarea
               value={almostNote}
               onChange={(e) => setAlmostNote(e.target.value)}

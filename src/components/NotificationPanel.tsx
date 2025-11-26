@@ -11,6 +11,7 @@ interface NotificationPanelProps {
   currentUserId: string;
   onClose: () => void;
   onOpenService: (serviceId: string) => void;
+  embedded?: boolean; // When true, renders without fixed positioning (for use in Popover)
 }
 
 export function NotificationPanel({
@@ -18,6 +19,7 @@ export function NotificationPanel({
   currentUserId,
   onClose,
   onOpenService,
+  embedded = false,
 }: NotificationPanelProps) {
   // Agregar todas as mensagens não lidas de todos os serviços
   const unreadNotifications = services
@@ -75,6 +77,75 @@ export function NotificationPanel({
         return role;
     }
   };
+
+  // Embedded mode for Popover
+  if (embedded) {
+    return (
+      <div className="flex flex-col max-h-[400px]">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold">Notificacoes</h3>
+            {unreadNotifications.length > 0 && (
+              <span className="px-2 py-0.5 text-xs font-bold bg-destructive text-destructive-foreground rounded-full">
+                {unreadNotifications.length}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Lista */}
+        <div className="flex-1 overflow-y-auto">
+          {unreadNotifications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+              <MessageSquare className="w-10 h-10 text-muted-foreground/30 mb-2" />
+              <p className="text-muted-foreground text-sm">Nenhuma notificacao</p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {unreadNotifications.slice(0, 5).map((notification) => (
+                <div
+                  key={notification.id}
+                  onClick={() => {
+                    onOpenService(notification.service.id);
+                    onClose();
+                  }}
+                  className="p-3 hover:bg-muted cursor-pointer transition-colors"
+                >
+                  <div className="flex items-start gap-2 mb-1">
+                    {getMessageIcon(notification.type)}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">
+                        {notification.senderName}
+                      </p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">
+                        {notification.content}
+                      </p>
+                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {formatDistanceToNow(new Date(notification.createdAt), {
+                        addSuffix: true,
+                        locale: ptBR,
+                      })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {unreadNotifications.length > 5 && (
+          <div className="p-2 border-t text-center">
+            <p className="text-xs text-muted-foreground">
+              +{unreadNotifications.length - 5} mais notificacoes
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <>
