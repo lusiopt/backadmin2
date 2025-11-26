@@ -51,8 +51,8 @@ export function useService(serviceId: string | undefined) {
     // Cache por 5 minutos
     staleTime: 5 * 60 * 1000,
 
-    // Refetch em background quando a janela ganha foco
-    refetchOnWindowFocus: true,
+    // Desabilitado: evita requisições desnecessárias ao trocar de aba
+    refetchOnWindowFocus: false,
 
     // Retry automático em caso de erro
     retry: 2,

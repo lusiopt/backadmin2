@@ -58,24 +58,32 @@ export function useUpdateService() {
     },
 
     onSuccess: async (updatedService, variables) => {
-      console.log('✅ Mutation bem-sucedida, invalidando cache...');
+      console.log('✅ Mutation bem-sucedida, atualizando cache...');
       console.log('Serviço atualizado:', updatedService);
 
       toast.success('✅ Atualizado com sucesso!');
 
-      // Invalidar e refetch cache da lista de serviços
-      await queryClient.invalidateQueries({
-        queryKey: ['services'],
-        refetchType: 'active'
+      // Atualizar cache do serviço específico diretamente (sem refetch)
+      queryClient.setQueryData(['service', variables.serviceId], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          service: updatedService,
+        };
       });
 
-      // Invalidar e refetch cache do serviço específico
-      await queryClient.invalidateQueries({
-        queryKey: ['service', variables.serviceId],
-        refetchType: 'active'
+      // Atualizar o serviço na lista (sem refetch de toda a lista)
+      queryClient.setQueriesData({ queryKey: ['services'] }, (old: any) => {
+        if (!old?.services) return old;
+        return {
+          ...old,
+          services: old.services.map((s: Service) =>
+            s.id === variables.serviceId ? { ...s, ...updatedService } : s
+          ),
+        };
       });
 
-      console.log('✅ Cache invalidado e refetch acionado...');
+      console.log('✅ Cache atualizado otimisticamente (sem refetch)');
     },
 
     onError: (error: any) => {

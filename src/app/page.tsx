@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { ProfileSwitcher } from "@/components/ProfileSwitcher";
 import { NotificationPanel } from "@/components/NotificationPanel";
 import { ListView, ByUserView } from "@/components/views";
+import { ServiceListSkeleton } from "@/components/skeletons";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useLogout } from "@/hooks/auth";
@@ -42,6 +43,14 @@ export default function DashboardPage() {
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
 
+  // Debounce da busca - aguarda 300ms após parar de digitar
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   // Hook React Query para buscar serviços da API
   const {
     data,
@@ -52,7 +61,7 @@ export default function DashboardPage() {
     isFetching,
   } = useServices({
     page: 1,
-    limit: 100, // Buscar todos para filtrar localmente
+    limit: 50, // Reduzido de 100 para melhor performance
     status: selectedStatuses.length > 0 ? selectedStatuses[0] : undefined,
     search: search || undefined,
   });
@@ -130,14 +139,13 @@ export default function DashboardPage() {
     });
   };
 
-  // Loading state
+  // Loading state - Skeleton Screen
   if (isLoading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando serviços...</p>
+        <div className="min-h-screen bg-gray-50">
+          <div className="p-4 sm:p-8">
+            <ServiceListSkeleton />
           </div>
         </div>
       </ProtectedRoute>
