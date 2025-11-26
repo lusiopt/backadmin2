@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useServices } from "@/hooks/services";
@@ -11,9 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { filterServicesByPhasePermissions } from "@/lib/permissions";
-import { StatsCards } from "@/components/stats/StatsCards";
-import { ProcessChart } from "@/components/charts/ProcessChart";
-import { RecentActivity } from "@/components/tables/RecentActivity";
 import { ProfileSwitcher } from "@/components/ProfileSwitcher";
 import { NotificationPanel } from "@/components/NotificationPanel";
 import { MobileServiceCard } from "@/components/tables/MobileServiceCard";
@@ -22,21 +19,16 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useLogout } from "@/hooks/auth";
 import {
   Bell,
-  Calendar,
-  Filter,
   RefreshCw,
   Settings,
   Search,
-  ChevronRight,
-  Users as UsersIcon,
   LogOut,
-  FileText,
   ChevronDown,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
   ChevronLeft,
-  Shield,
+  ChevronRight,
   MessageSquare
 } from "lucide-react";
 
@@ -46,7 +38,7 @@ export default function DashboardPage() {
   const logout = useLogout();
   const [searchInput, setSearchInput] = useState(""); // Input temporário
   const [search, setSearch] = useState(""); // Busca real enviada para API
-  const [viewMode, setViewMode] = useState<"dashboard" | "list" | "by-user">("dashboard");
+  const [viewMode, setViewMode] = useState<"list" | "by-user">("list");
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [showStatusFilter, setShowStatusFilter] = useState(false);
   const [showDateFilter, setShowDateFilter] = useState(false);
@@ -76,24 +68,24 @@ export default function DashboardPage() {
   const isRefreshing = isFetching;
 
   // Função auxiliar para contar mensagens não lidas de um serviço
-  const getUnreadMessagesCount = (service: Service): number => {
+  const getUnreadMessagesCount = useCallback((service: Service): number => {
     if (!service.messages || !user) return 0;
     return service.messages.filter(
       (m) => m.status === "unread" && m.senderId !== user.id
     ).length;
-  };
+  }, [user]);
 
   // Calcular total de mensagens não lidas (todas as comunicações)
   const totalUnreadMessages = useMemo(() => {
     return services.reduce((total, service) => {
       return total + getUnreadMessagesCount(service);
     }, 0);
-  }, [services, user]);
+  }, [services, getUnreadMessagesCount]);
 
   // Calcular processos com notificações (serviços que têm mensagens não lidas)
   const servicesWithNotifications = useMemo(() => {
     return services.filter(service => getUnreadMessagesCount(service) > 0);
-  }, [services, user]);
+  }, [services, getUnreadMessagesCount]);
 
   // Sorting
   const [sortColumn, setSortColumn] = useState<'name' | 'email' | 'status' | 'createdAt' | null>(null);
@@ -220,7 +212,7 @@ export default function DashboardPage() {
     }
 
     return filtered;
-  }, [accessibleServices, search, selectedStatuses, dateFrom, dateTo, showPendingCommunications, sortColumn, sortDirection, user]);
+  }, [accessibleServices, search, selectedStatuses, dateFrom, dateTo, showPendingCommunications, sortColumn, sortDirection, getUnreadMessagesCount]);
 
   // Paginated services for list view
   const paginatedServices = useMemo(() => {
@@ -250,49 +242,6 @@ export default function DashboardPage() {
       totalServices: userServices.length,
     }));
   }, [filteredAndSortedServices]);
-
-  // Quick actions (using accessible services only)
-  const quickActions = [
-    {
-      label: "Comunicações Pendentes",
-      count: servicesWithNotifications.length,
-      icon: <MessageSquare className="w-5 h-5" />,
-      color: "bg-blue-100 text-blue-700",
-      action: () => {
-        setShowNotificationPanel(true);
-      }
-    },
-    {
-      label: "Processos Pendentes",
-      count: accessibleServices.filter(s => s.status === "Passo 7 Esperando").length,
-      icon: <Bell className="w-5 h-5" />,
-      color: "bg-yellow-100 text-yellow-700",
-      action: () => {
-        setSelectedStatuses(["Passo 7 Esperando"]);
-        setViewMode("list");
-      }
-    },
-    {
-      label: "Aprovar Processos",
-      count: accessibleServices.filter(s => s.status === "Passo 7 Esperando").length,
-      icon: <ChevronRight className="w-5 h-5" />,
-      color: "bg-green-100 text-green-700",
-      action: () => {
-        setSelectedStatuses(["Passo 7 Esperando"]);
-        setViewMode("list");
-      }
-    },
-    {
-      label: "Documentos Faltantes",
-      count: accessibleServices.filter(s => s.status === "Passo 7 Recusado").length,
-      icon: <Calendar className="w-5 h-5" />,
-      color: "bg-red-100 text-red-700",
-      action: () => {
-        setSelectedStatuses(["Passo 7 Recusado"]);
-        setViewMode("list");
-      }
-    },
-  ];
 
   const handleServiceClick = (service: ServiceWithRelations) => {
     setSelectedService(service);
@@ -385,18 +334,6 @@ export default function DashboardPage() {
           <div className="flex items-center justify-center gap-1 sm:gap-3">
             {/* View Toggle */}
             <div className="flex gap-0.5 sm:gap-1 p-0.5 sm:p-1 bg-gray-100 rounded-lg">
-                <button
-                  onClick={() => setViewMode("dashboard")}
-                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${
-                    viewMode === "dashboard"
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <span className="flex items-center gap-1 sm:gap-1.5">
-                    <span className="hidden sm:inline">📊</span> Dashboard
-                  </span>
-                </button>
                 <button
                   onClick={() => setViewMode("list")}
                   className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${
@@ -671,148 +608,7 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <div className="p-4 sm:p-8">
-        {viewMode === "dashboard" ? (
-          <>
-            {/* Quick Actions */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                Ações Rápidas
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {quickActions.map((action, index) => (
-                  <button
-                    key={index}
-                    onClick={action.action}
-                    className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${action.color}`}>
-                        {action.icon}
-                      </div>
-                      <div className="text-left">
-                        <p className="text-sm font-medium text-gray-900">
-                          {action.label}
-                        </p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {action.count}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Stats Cards */}
-            <StatsCards
-              onFilterChange={setSelectedStatuses}
-              onViewChange={setViewMode}
-            />
-
-            {/* Charts and Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ProcessChart
-                onFilterChange={setSelectedStatuses}
-                onViewChange={setViewMode}
-              />
-              <RecentActivity
-                onServiceClick={handleServiceClick}
-                onViewAllClick={() => setViewMode("list")}
-              />
-            </div>
-
-            {/* Additional Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              {/* Pending Actions */}
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Ações Pendentes
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    { label: "Documentos para revisar", count: 8, urgent: true },
-                    { label: "Processos aguardando IRN", count: 3, urgent: false },
-                    { label: "Pagamentos pendentes", count: 5, urgent: false },
-                    { label: "Emails não respondidos", count: 2, urgent: true },
-                  ].map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <span className="text-sm font-medium text-gray-700">
-                        {item.label}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          item.urgent
-                            ? 'bg-red-100 text-red-700'
-                            : 'bg-gray-100 text-gray-700'
-                        }`}>
-                          {item.count}
-                        </span>
-                        {item.urgent && (
-                          <span className="text-red-500 text-xs">Urgente</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-
-              {/* System Health */}
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Status do Sistema
-                </h3>
-                <div className="space-y-4">
-                  {[
-                    { service: "API Backend", status: "online", latency: "45ms" },
-                    { service: "Base de Dados", status: "online", latency: "12ms" },
-                    { service: "Stripe", status: "online", latency: "120ms" },
-                    { service: "Email Service", status: "online", latency: "88ms" },
-                    { service: "File Storage", status: "online", latency: "67ms" },
-                  ].map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${
-                          item.status === 'online' ? 'bg-green-500' : 'bg-red-500'
-                        }`} />
-                        <span className="text-sm font-medium text-gray-700">
-                          {item.service}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-500">
-                          {item.latency}
-                        </span>
-                        <span className={`text-xs font-medium ${
-                          item.status === 'online' ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {item.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">
-                      Última verificação: há 2 minutos
-                    </span>
-                    <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                      Ver detalhes
-                    </button>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </>
-        ) : viewMode === "list" ? (
+        {viewMode === "list" ? (
           <>
             {/* List View */}
             <div className="mb-4 sm:mb-6 flex items-center justify-between">
