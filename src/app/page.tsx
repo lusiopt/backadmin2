@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useServices } from "@/hooks/services";
+import { useServiceFilters } from "@/hooks/useServiceFilters";
 import { Service, ServiceStatus, ServiceWithRelations, Permission } from "@/lib/types";
 import { StatusBadge } from "@/components/pedidos/status-badge";
 import { ServiceModal } from "@/components/pedidos/service-modal";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
-import { filterServicesByPhasePermissions } from "@/lib/permissions";
 import { ProfileSwitcher } from "@/components/ProfileSwitcher";
 import { NotificationPanel } from "@/components/NotificationPanel";
 import { MobileServiceCard } from "@/components/tables/MobileServiceCard";
@@ -67,33 +67,44 @@ export default function DashboardPage() {
   const services = data?.services || [];
   const isRefreshing = isFetching;
 
-  // Função auxiliar para contar mensagens não lidas de um serviço
-  const getUnreadMessagesCount = useCallback((service: Service): number => {
-    if (!service.messages || !user) return 0;
-    return service.messages.filter(
-      (m) => m.status === "unread" && m.senderId !== user.id
-    ).length;
-  }, [user]);
-
-  // Calcular total de mensagens não lidas (todas as comunicações)
-  const totalUnreadMessages = useMemo(() => {
-    return services.reduce((total, service) => {
-      return total + getUnreadMessagesCount(service);
-    }, 0);
-  }, [services, getUnreadMessagesCount]);
-
-  // Calcular processos com notificações (serviços que têm mensagens não lidas)
-  const servicesWithNotifications = useMemo(() => {
-    return services.filter(service => getUnreadMessagesCount(service) > 0);
-  }, [services, getUnreadMessagesCount]);
-
-  // Sorting
+  // Sorting state
   const [sortColumn, setSortColumn] = useState<'name' | 'email' | 'status' | 'createdAt' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // Pagination
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Use the filter hook
+  const {
+    paginatedServices,
+    servicesByUser,
+    uniqueStatuses,
+    totalPages,
+    totalCount,
+    totalUnreadMessages,
+    servicesWithNotifications,
+    getUnreadMessagesCount,
+  } = useServiceFilters({
+    services,
+    hasPermission,
+    filters: {
+      search,
+      selectedStatuses,
+      dateFrom,
+      dateTo,
+      showPendingCommunications,
+    },
+    sort: {
+      sortColumn,
+      sortDirection,
+    },
+    pagination: {
+      currentPage,
+      itemsPerPage,
+    },
+    userId: user?.id,
+  });
 
   const handleRefresh = () => {
     refetch();
@@ -102,14 +113,11 @@ export default function DashboardPage() {
   // Handle sorting
   const handleSort = (column: 'name' | 'email' | 'status' | 'createdAt') => {
     if (sortColumn === column) {
-      // Toggle direction if clicking same column
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      // New column, default to ascending
       setSortColumn(column);
       setSortDirection('asc');
     }
-    // Reset to first page when sorting changes
     setCurrentPage(1);
   };
 
@@ -122,126 +130,6 @@ export default function DashboardPage() {
       ? <ArrowUp className="w-4 h-4 text-blue-600" />
       : <ArrowDown className="w-4 h-4 text-blue-600" />;
   };
-
-  // Filter services by phase permissions FIRST
-  const accessibleServices = useMemo(() => {
-    return filterServicesByPhasePermissions(services, hasPermission);
-  }, [services, hasPermission]);
-
-  // Get unique statuses from accessible services only
-  const uniqueStatuses = useMemo(() => {
-    const statuses = new Set(accessibleServices.map((s) => s.status).filter(Boolean));
-    return Array.from(statuses);
-  }, [accessibleServices]);
-
-  // Filtered and sorted services
-  const filteredAndSortedServices = useMemo(() => {
-    let filtered = accessibleServices.filter((service) => {
-      // Search filter
-      if (search) {
-        const searchLower = search.toLowerCase();
-        const matchesSearch =
-          service.user?.fullName?.toLowerCase().includes(searchLower) ||
-          service.user?.email?.toLowerCase().includes(searchLower) ||
-          service.id.toLowerCase().includes(searchLower);
-        if (!matchesSearch) return false;
-      }
-
-      // Status filter
-      if (selectedStatuses.length > 0) {
-        if (!service.status || !selectedStatuses.includes(service.status)) {
-          return false;
-        }
-      }
-
-      // Date filter
-      if (dateFrom || dateTo) {
-        const serviceDate = new Date(service.createdAt);
-        if (dateFrom) {
-          const fromDate = new Date(dateFrom);
-          fromDate.setHours(0, 0, 0, 0);
-          if (serviceDate < fromDate) return false;
-        }
-        if (dateTo) {
-          const toDate = new Date(dateTo);
-          toDate.setHours(23, 59, 59, 999);
-          if (serviceDate > toDate) return false;
-        }
-      }
-
-      // Pending communications filter
-      if (showPendingCommunications) {
-        const unreadCount = getUnreadMessagesCount(service);
-        if (unreadCount === 0) return false;
-      }
-
-      return true;
-    });
-
-    // Apply sorting
-    if (sortColumn) {
-      filtered = [...filtered].sort((a, b) => {
-        let aValue: any;
-        let bValue: any;
-
-        switch (sortColumn) {
-          case 'name':
-            aValue = a.user?.fullName?.toLowerCase() || '';
-            bValue = b.user?.fullName?.toLowerCase() || '';
-            break;
-          case 'email':
-            aValue = a.user?.email?.toLowerCase() || '';
-            bValue = b.user?.email?.toLowerCase() || '';
-            break;
-          case 'status':
-            aValue = a.status?.toLowerCase() || '';
-            bValue = b.status?.toLowerCase() || '';
-            break;
-          case 'createdAt':
-            aValue = new Date(a.createdAt).getTime();
-            bValue = new Date(b.createdAt).getTime();
-            break;
-          default:
-            return 0;
-        }
-
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [accessibleServices, search, selectedStatuses, dateFrom, dateTo, showPendingCommunications, sortColumn, sortDirection, getUnreadMessagesCount]);
-
-  // Paginated services for list view
-  const paginatedServices = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredAndSortedServices.slice(startIndex, endIndex);
-  }, [filteredAndSortedServices, currentPage, itemsPerPage]);
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredAndSortedServices.length / itemsPerPage);
-
-  // Group services by user
-  const servicesByUser = useMemo(() => {
-    const grouped = new Map<string, ServiceWithRelations[]>();
-
-    filteredAndSortedServices.forEach((service) => {
-      const userId = service.user?.id || '';
-      if (!grouped.has(userId)) {
-        grouped.set(userId, []);
-      }
-      grouped.get(userId)!.push(service as ServiceWithRelations);
-    });
-
-    return Array.from(grouped.entries()).map(([userId, userServices]) => ({
-      user: userServices[0].user,
-      services: userServices,
-      totalServices: userServices.length,
-    }));
-  }, [filteredAndSortedServices]);
 
   const handleServiceClick = (service: ServiceWithRelations) => {
     setSelectedService(service);
@@ -613,7 +501,7 @@ export default function DashboardPage() {
             {/* List View */}
             <div className="mb-4 sm:mb-6 flex items-center justify-between">
               <h2 className="text-xl sm:text-2xl font-bold">
-                Processos ({filteredAndSortedServices.length})
+                Processos ({totalCount})
               </h2>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">Items por página:</span>
@@ -744,7 +632,7 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
 
-                {filteredAndSortedServices.length === 0 && (
+                {totalCount === 0 && (
                   <div className="text-center py-12">
                     <p className="text-gray-500 text-lg">
                       Nenhum processo encontrado
@@ -757,10 +645,10 @@ export default function DashboardPage() {
               </div>
 
               {/* Pagination Controls */}
-              {filteredAndSortedServices.length > 0 && (
+              {totalCount > 0 && (
                 <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
                   <div className="text-sm text-gray-600">
-                    Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, filteredAndSortedServices.length)} de {filteredAndSortedServices.length} resultados
+                    Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, totalCount)} de {totalCount} resultados
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -829,7 +717,7 @@ export default function DashboardPage() {
                 />
               ))}
 
-              {filteredAndSortedServices.length === 0 && (
+              {totalCount === 0 && (
                 <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
                   <p className="text-gray-500 text-lg">
                     Nenhum processo encontrado
@@ -841,10 +729,10 @@ export default function DashboardPage() {
               )}
 
               {/* Pagination Mobile */}
-              {filteredAndSortedServices.length > 0 && (
+              {totalCount > 0 && (
                 <div className="bg-white rounded-lg border border-gray-200 p-4">
                   <div className="text-sm text-gray-600 text-center mb-3">
-                    Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, filteredAndSortedServices.length)} de {filteredAndSortedServices.length}
+                    Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, totalCount)} de {totalCount}
                   </div>
                   <div className="flex items-center justify-center gap-2">
                     <button
