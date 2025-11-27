@@ -30,14 +30,14 @@ function LoginForm() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-lusioBlueLight via-white to-primaryLight p-4 animate-fadeIn">
-      <div className="absolute inset-0 bg-[url('/lusio-logo.jpeg')] bg-center bg-no-repeat opacity-5 bg-contain"></div>
+      <div className="absolute inset-0 bg-[url('/backadmin2/lusio-logo.jpeg')] bg-center bg-no-repeat opacity-5 bg-contain"></div>
 
       <Card className="w-full max-w-md shadow-2xl border-none hover-lift animate-slideIn relative z-10">
         <CardHeader className="space-y-4 pb-8">
           <div className="flex justify-center mb-4">
             <div className="relative w-32 h-32">
               <Image
-                src="/lusio-logo.jpeg"
+                src="/backadmin2/lusio-logo.jpeg"
                 alt="Lusio Logo"
                 fill
                 className="object-contain"
