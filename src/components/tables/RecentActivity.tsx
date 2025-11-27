@@ -6,7 +6,7 @@ import { mockServices } from "@/lib/mockData";
 import { ServiceWithRelations } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, User, FileText, ArrowRight } from "lucide-react";
+import { Clock, User, FileText, ArrowRight, Check, X, CreditCard, ClipboardList } from "lucide-react";
 
 interface RecentActivityProps {
   onServiceClick?: (service: ServiceWithRelations) => void;
@@ -43,15 +43,15 @@ export function RecentActivity({ onServiceClick, onViewAllClick }: RecentActivit
 
   const getActivityIcon = (status: string) => {
     if (status?.includes("Aprovado") || status === "Concluído") {
-      return "✅";
+      return <Check className="w-5 h-5 text-green-500" />;
     } else if (status?.includes("Recusado")) {
-      return "❌";
+      return <X className="w-5 h-5 text-red-500" />;
     } else if (status?.includes("Esperando")) {
-      return "⏳";
+      return <Clock className="w-5 h-5 text-yellow-500" />;
     } else if (status?.includes("Passo 8")) {
-      return "💳";
+      return <CreditCard className="w-5 h-5 text-blue-500" />;
     }
-    return "📋";
+    return <ClipboardList className="w-5 h-5 text-gray-500" />;
   };
 
   return (
@@ -86,7 +86,7 @@ export function RecentActivity({ onServiceClick, onViewAllClick }: RecentActivit
               onClick={() => onServiceClick?.(service as ServiceWithRelations)}
             >
               {/* Ícone */}
-              <div className="text-2xl mt-1">
+              <div className="mt-1">
                 {getActivityIcon(service.status || "")}
               </div>
 

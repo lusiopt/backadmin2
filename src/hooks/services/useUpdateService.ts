@@ -43,25 +43,25 @@ export function useUpdateService() {
       serviceId: string;
       data: UpdateServiceData;
     }): Promise<Service> => {
-      console.log('🔄 Enviando atualização:', { serviceId, data });
+      console.log('Enviando atualização:', { serviceId, data });
 
       // Fazer requisição
       const response = await apiClient.put(`/operator/services/${serviceId}`, data);
 
-      console.log('✅ Resposta da API:', response.data);
+      console.log('Resposta da API:', response.data);
 
       // Adaptar resposta da API para o schema local
       const adapted = adaptService(response.data.service);
-      console.log('🔄 Dados adaptados:', adapted);
+      console.log('Dados adaptados:', adapted);
 
       return adapted;
     },
 
     onSuccess: async (updatedService, variables) => {
-      console.log('✅ Mutation bem-sucedida, atualizando cache...');
+      console.log('Mutation bem-sucedida, atualizando cache...');
       console.log('Serviço atualizado:', updatedService);
 
-      toast.success('✅ Atualizado com sucesso!');
+      toast.success('Atualizado com sucesso!');
 
       // Atualizar cache do serviço específico diretamente (sem refetch)
       queryClient.setQueryData(['service', variables.serviceId], (old: any) => {
@@ -83,17 +83,17 @@ export function useUpdateService() {
         };
       });
 
-      console.log('✅ Cache atualizado otimisticamente (sem refetch)');
+      console.log('Cache atualizado otimisticamente (sem refetch)');
     },
 
     onError: (error: any) => {
-      console.error('❌ Erro ao atualizar serviço:', error);
+      console.error('Erro ao atualizar serviço:', error);
       console.error('Detalhes:', error.response?.data);
 
       const errorMessage = error.response?.data?.message || error.message || 'Erro desconhecido';
       const statusCode = error.response?.status;
 
-      toast.error(`❌ Erro ao atualizar (${statusCode}): ${errorMessage}`, {
+      toast.error(`Erro ao atualizar (${statusCode}): ${errorMessage}`, {
         duration: 6000,
       });
     },

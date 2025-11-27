@@ -16,6 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { MessageThread } from "@/components/MessageThread";
+import { FileText, File, MessageSquare, Zap, Calendar, Pencil, Save, X, Check, Clock, Paperclip, AlertTriangle, Plus, RefreshCw, Scale, Banknote, Building, Send, User, Upload, FileCheck, CreditCard, UserCheck } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface ServiceModalProps {
   service: ServiceWithRelations;
@@ -68,23 +70,23 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
       } as any
     });
     setIsEditingClient(false);
-    alert("✅ Dados atualizados!");
+    toast.success("Dados atualizados!");
   };
 
   const handleApprove = () => {
     updateService(service.id, { status: ServiceStatus.STEP_7_APPROVED });
     setShowApproveModal(false);
-    alert("✅ Documentos aprovados!");
+    toast.success("Documentos aprovados!");
   };
 
   const handleAlmost = () => {
     if (!almostNote.trim()) {
-      alert("Explique o que falta");
+      toast.error("Explique o que falta");
       return;
     }
 
     if (!user) {
-      alert("Erro: usuário não autenticado");
+      toast.error("Erro: usuário não autenticado");
       return;
     }
 
@@ -114,12 +116,12 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
     });
     setShowAlmostModal(false);
     setAlmostNote("");
-    alert("⚠️ Status alterado e mensagem enviada ao backoffice");
+    toast.success("Status alterado e mensagem enviada ao backoffice");
   };
 
   const handleSendMessage = (input: CreateMessageInput) => {
     if (!user) {
-      alert("Erro: usuário não autenticado");
+      toast.error("Erro: usuário não autenticado");
       return;
     }
 
@@ -164,7 +166,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
 
   const handleAddIRN = () => {
     if (!entity || !reference) {
-      alert("Preencha Entidade e Referência");
+      toast.error("Preencha Entidade e Referência");
       return;
     }
     updateService(service.id, {
@@ -173,7 +175,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
       status: ServiceStatus.STEP_8
     });
     setShowIRNModal(false);
-    alert("✅ Dados do IRN inseridos!");
+    toast.success("Dados do IRN inseridos!");
   };
 
   const handleConfirmGovernment = () => {
@@ -182,12 +184,12 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
       isPaidGovernment: true,
       paidGovernmentAt: new Date().toISOString()
     });
-    alert("✅ Pagamento confirmado pelo governo!");
+    toast.success("Pagamento confirmado pelo governo!");
   };
 
   const handleSubmitProcess = () => {
     if (!processNumber || !processPassword) {
-      alert("Preencha Número e Senha");
+      toast.error("Preencha Número e Senha");
       return;
     }
     updateService(service.id, {
@@ -197,7 +199,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
       submissionDate: new Date().toISOString()
     });
     setShowProcessModal(false);
-    alert("✅ Processo submetido!");
+    toast.success("Processo submetido!");
   };
 
   return (
@@ -223,10 +225,11 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mx-6 mt-4 bg-muted">
-              <TabsTrigger value="dados" icon="📋">Dados</TabsTrigger>
-              <TabsTrigger value="documentos" icon="📄">Documentos</TabsTrigger>
-              <TabsTrigger value="timeline" icon="📅">Histórico</TabsTrigger>
-              <TabsTrigger value="comunicacoes" icon="💬">
+              <TabsTrigger value="dados" className="gap-1.5"><FileText className="h-4 w-4" />Dados</TabsTrigger>
+              <TabsTrigger value="documentos" className="gap-1.5"><File className="h-4 w-4" />Documentos</TabsTrigger>
+              <TabsTrigger value="timeline" className="gap-1.5"><Calendar className="h-4 w-4" />Histórico</TabsTrigger>
+              <TabsTrigger value="comunicacoes" className="gap-1.5">
+                <MessageSquare className="h-4 w-4" />
                 Comunicações
                 {service.messages && service.messages.some(m => m.status === MessageStatus.UNREAD && m.senderId !== user?.id) && (
                   <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
@@ -234,7 +237,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="acoes" icon="⚡">Ações</TabsTrigger>
+              <TabsTrigger value="acoes" className="gap-1.5"><Zap className="h-4 w-4" />Ações</TabsTrigger>
             </TabsList>
 
             <div className="flex-1 overflow-y-auto px-6">
@@ -245,16 +248,16 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                   {/* Only users with EDIT_SERVICE permission can edit */}
                   {hasPermission(Permission.EDIT_SERVICE) && (
                     !isEditingClient ? (
-                      <Button onClick={() => setIsEditingClient(true)} size="sm" variant="outline">
-                        ✏️ Editar
+                      <Button onClick={() => setIsEditingClient(true)} size="sm" variant="outline" className="gap-1.5">
+                        <Pencil className="h-4 w-4" /> Editar
                       </Button>
                     ) : (
                       <div className="flex gap-2">
-                        <Button onClick={handleSaveClientEdit} size="sm" className="bg-green-600 hover:bg-green-700">
-                          💾 Salvar
+                        <Button onClick={handleSaveClientEdit} size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700">
+                          <Save className="h-4 w-4" /> Salvar
                         </Button>
-                        <Button onClick={() => setIsEditingClient(false)} size="sm" variant="outline">
-                          ❌ Cancelar
+                        <Button onClick={() => setIsEditingClient(false)} size="sm" variant="outline" className="gap-1.5">
+                          <X className="h-4 w-4" /> Cancelar
                         </Button>
                       </div>
                     )
@@ -397,13 +400,13 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                     {service.sendSolicitationDate && (
                       <div><span className="font-medium">Solicitação:</span> {formatDate(service.sendSolicitationDate)}</div>
                     )}
-                    <div><span className="font-medium">Taxa Paga:</span> {service.isPaidTax ? "✅" : "❌"}</div>
-                    <div><span className="font-medium">Governo:</span> {service.isPaidGovernment ? "✅" : "❌"}</div>
+                    <div><span className="font-medium">Taxa Paga:</span> {service.isPaidTax ? <Check className="inline h-4 w-4 text-green-600" /> : <X className="inline h-4 w-4 text-red-600" />}</div>
+                    <div><span className="font-medium">Governo:</span> {service.isPaidGovernment ? <Check className="inline h-4 w-4 text-green-600" /> : <X className="inline h-4 w-4 text-red-600" />}</div>
                     {service.paymentReferenceId && (
                       <div><span className="font-medium">Ref. Pagamento:</span> {service.paymentReferenceId}</div>
                     )}
                     {service.documentPromotion !== null && service.documentPromotion !== undefined && (
-                      <div><span className="font-medium">Promoção Docs:</span> {service.documentPromotion ? "✅" : "❌"}</div>
+                      <div><span className="font-medium">Promoção Docs:</span> {service.documentPromotion ? <Check className="inline h-4 w-4 text-green-600" /> : <X className="inline h-4 w-4 text-red-600" />}</div>
                     )}
                     <div><span className="font-medium">Entidade:</span> {service.entity || "-"}</div>
                     <div><span className="font-medium">Referência:</span> {service.reference || "-"}</div>
@@ -441,7 +444,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                             updateService(service.id, {
                               documents: [...(service.documents || []), ...newDocs]
                             });
-                            alert(`✅ ${files.length} arquivo(s) adicionado(s)!`);
+                            toast.success(`${files.length} arquivo(s) adicionado(s)!`);
                             e.target.value = '';
                           }
                         }}
@@ -455,7 +458,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                           if (input) input.click();
                         }}
                       >
-                        📎 Adicionar Documentos
+                        <Paperclip className="h-4 w-4 mr-1" /> Adicionar Documentos
                       </Button>
                     </div>
                   )}
@@ -472,8 +475,8 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                                 {doc.title || doc.name}
                               </span>
                               {doc.approved !== null && doc.approved !== undefined && (
-                                <span className={`text-xs px-2 py-0.5 rounded ${doc.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                  {doc.approved ? '✅ Aprovado' : '⏳ Pendente'}
+                                <span className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 ${doc.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                  {doc.approved ? <><Check className="h-3 w-3" /> Aprovado</> : <><Clock className="h-3 w-3" /> Pendente</>}
                                 </span>
                               )}
                             </div>
@@ -541,6 +544,21 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
               <TabsContent value="timeline">
                 <div className="space-y-2 max-h-[600px] overflow-y-auto">
                   {(() => {
+                    // Mapa de ícones
+                    const iconMap: Record<string, React.ReactNode> = {
+                      plus: <Plus className="h-5 w-5" />,
+                      refresh: <RefreshCw className="h-5 w-5" />,
+                      scale: <Scale className="h-5 w-5" />,
+                      message: <MessageSquare className="h-5 w-5" />,
+                      file: <File className="h-5 w-5" />,
+                      fileText: <FileText className="h-5 w-5" />,
+                      banknote: <Banknote className="h-5 w-5" />,
+                      building: <Building className="h-5 w-5" />,
+                      upload: <Upload className="h-5 w-5" />,
+                      user: <User className="h-5 w-5" />,
+                      pencil: <Pencil className="h-5 w-5" />,
+                    };
+
                     // Agregação de todos os eventos do processo
                     const events: Array<{ date: Date; description: string; icon: string; color: string }> = [];
 
@@ -549,7 +567,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                       events.push({
                         date: new Date(service.createdAt),
                         description: "Processo criado",
-                        icon: "🆕",
+                        icon: "plus",
                         color: "blue"
                       });
                     }
@@ -561,7 +579,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                           events.push({
                             date: new Date(msg.createdAt),
                             description: `Status alterado para: ${msg.metadata.newStatus}`,
-                            icon: "🔄",
+                            icon: "refresh",
                             color: "purple"
                           });
                         }
@@ -571,7 +589,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                           events.push({
                             date: new Date(msg.createdAt),
                             description: `Solicitação da advogada: ${msg.content.substring(0, 50)}${msg.content.length > 50 ? '...' : ''}`,
-                            icon: "⚖️",
+                            icon: "scale",
                             color: "yellow"
                           });
                         }
@@ -581,7 +599,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                           events.push({
                             date: new Date(msg.createdAt),
                             description: `Resposta do backoffice: ${msg.content.substring(0, 50)}${msg.content.length > 50 ? '...' : ''}`,
-                            icon: "💬",
+                            icon: "message",
                             color: "green"
                           });
                         }
@@ -594,7 +612,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                         events.push({
                           date: new Date(doc.uploadedAt),
                           description: `Documento enviado: ${doc.name}`,
-                          icon: "📄",
+                          icon: "file",
                           color: "indigo"
                         });
                       });
@@ -606,7 +624,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                         events.push({
                           date: new Date(doc.uploadedAt),
                           description: `Documento da advogada: ${doc.name}`,
-                          icon: "📋",
+                          icon: "fileText",
                           color: "violet"
                         });
                       });
@@ -617,7 +635,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                       events.push({
                         date: new Date(service.paidTaxAt),
                         description: "Taxa paga",
-                        icon: "💰",
+                        icon: "banknote",
                         color: "green"
                       });
                     }
@@ -626,7 +644,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                       events.push({
                         date: new Date(service.paidGovernmentAt),
                         description: "Pagamento ao governo confirmado",
-                        icon: "🏛️",
+                        icon: "building",
                         color: "green"
                       });
                     }
@@ -636,7 +654,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                       events.push({
                         date: new Date(service.submissionDate),
                         description: "Processo submetido",
-                        icon: "📤",
+                        icon: "upload",
                         color: "cyan"
                       });
                     }
@@ -646,7 +664,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                       events.push({
                         date: new Date(service.assignedAt),
                         description: "Processo atribuído",
-                        icon: "👤",
+                        icon: "user",
                         color: "gray"
                       });
                     }
@@ -656,7 +674,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                       events.push({
                         date: new Date(service.updatedAt),
                         description: "Processo atualizado",
-                        icon: "✏️",
+                        icon: "pencil",
                         color: "gray"
                       });
                     }
@@ -679,7 +697,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                         className="flex items-start gap-3 p-3 border-l-4 rounded hover:bg-muted transition-colors"
                         style={{ borderLeftColor: `var(--${event.color}-500)` }}
                       >
-                        <span className="text-2xl flex-shrink-0">{event.icon}</span>
+                        <span className="flex-shrink-0 text-muted-foreground">{iconMap[event.icon]}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium">{event.description}</p>
                           <p className="text-xs text-muted-foreground mt-1">
@@ -705,8 +723,8 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
               <TabsContent value="acoes" className="space-y-2 max-w-full sm:max-w-2xl mx-auto">
                 {!hasPermission(Permission.CHANGE_STATUS) ? (
                   <div className="bg-yellow-50 border border-yellow-300 rounded p-4 text-center">
-                    <p className="text-sm font-medium text-yellow-800">
-                      ⚠️ Você não tem permissão para alterar o status dos processos
+                    <p className="text-sm font-medium text-yellow-800 flex items-center justify-center gap-2">
+                      <AlertTriangle className="h-4 w-4" /> Você não tem permissão para alterar o status dos processos
                     </p>
                     <p className="text-xs text-yellow-700 mt-1">
                       Apenas usuários com permissão adequada podem realizar ações no workflow.
@@ -721,7 +739,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                         service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? 'bg-green-500 text-white' : 'bg-muted'
                       }`}>
-                        {service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? '✓' : '1'}
+                        {service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? <Check className="h-3 w-3" /> : '1'}
                       </div>
                       <h4 className="font-semibold text-sm">Revisão de Documentos</h4>
                     </div>
@@ -754,7 +772,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                         service.status === ServiceStatus.STEP_8 || service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? 'bg-green-500 text-white' : 'bg-muted'
                       }`}>
-                        {service.status === ServiceStatus.STEP_8 || service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? '✓' : '2'}
+                        {service.status === ServiceStatus.STEP_8 || service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? <Check className="h-3 w-3" /> : '2'}
                       </div>
                       <h4 className="font-semibold text-sm">Inserir Dados IRN</h4>
                     </div>
@@ -779,7 +797,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                         service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? 'bg-green-500 text-white' : service.status === ServiceStatus.STEP_8 ? 'bg-yellow-500 text-white animate-pulse' : 'bg-muted'
                       }`}>
-                        {service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? '✓' : '3'}
+                        {service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? <Check className="h-3 w-3" /> : '3'}
                       </div>
                       <h4 className="font-semibold text-sm">Cliente Pagar (€250)</h4>
                     </div>
@@ -789,7 +807,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                         <Button
                           onClick={() => {
                             updateService(service.id, { status: ServiceStatus.STEP_8_CLIENT_CONFIRMED });
-                            alert("Pagamento simulado");
+                            toast.success("Pagamento simulado");
                           }}
                           size="sm"
                           variant="outline"
@@ -812,7 +830,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                         service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ? 'bg-green-500 text-white' : 'bg-muted'
                       }`}>
-                        {service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ? '✓' : '4'}
+                        {service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ? <Check className="h-3 w-3" /> : '4'}
                       </div>
                       <h4 className="font-semibold text-sm">Confirmar Governo</h4>
                     </div>
@@ -834,7 +852,7 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                         service.status === ServiceStatus.SUBMITTED ? 'bg-green-500 text-white' : 'bg-muted'
                       }`}>
-                        {service.status === ServiceStatus.SUBMITTED ? '✓' : '5'}
+                        {service.status === ServiceStatus.SUBMITTED ? <Check className="h-3 w-3" /> : '5'}
                       </div>
                       <h4 className="font-semibold text-sm">Inserir Processo e Senha</h4>
                     </div>

@@ -13,6 +13,7 @@ import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import toast from "react-hot-toast";
+import { Pencil, Save, X, Check, AlertTriangle, FileText, Lock, Lightbulb, Drama } from "lucide-react";
 
 export default function PedidoDetailsPage() {
   const params = useParams();
@@ -83,7 +84,7 @@ export default function PedidoDetailsPage() {
   }
 
   const handleApprove = () => {
-    console.log('🚀 Iniciando aprovação...', { serviceId });
+    console.log('Iniciando aprovação...', { serviceId });
     toast.loading('Aprovando documentos...');
 
     updateService({
@@ -175,12 +176,7 @@ export default function PedidoDetailsPage() {
   const handleSaveClientEdit = () => {
     // TODO: API de operador não permite editar dados do cliente (person)
     // Precisa criar endpoint específico ou usar API de admin
-    toast("⚠️ Edição de dados do cliente ainda não implementada na API", {
-      icon: '⚠️',
-      style: {
-        background: '#f59e0b',
-      },
-    });
+    toast.error("Edição de dados do cliente ainda não implementada na API");
     setIsEditingClient(false);
   };
 
@@ -225,26 +221,26 @@ export default function PedidoDetailsPage() {
                 onClick={() => setIsEditingClient(true)}
                 variant="outline"
                 size="sm"
-                className="text-xs"
+                className="text-xs gap-1"
               >
-                ✏️ Editar
+                <Pencil className="h-3 w-3" /> Editar
               </Button>
             ) : (
               <div className="flex gap-2">
                 <Button
                   onClick={handleSaveClientEdit}
                   size="sm"
-                  className="text-xs bg-green-600 hover:bg-green-700"
+                  className="text-xs gap-1 bg-green-600 hover:bg-green-700"
                 >
-                  💾 Salvar
+                  <Save className="h-3 w-3" /> Salvar
                 </Button>
                 <Button
                   onClick={handleCancelClientEdit}
                   variant="outline"
                   size="sm"
-                  className="text-xs"
+                  className="text-xs gap-1"
                 >
-                  ❌ Cancelar
+                  <X className="h-3 w-3" /> Cancelar
                 </Button>
               </div>
             )}
@@ -331,8 +327,8 @@ export default function PedidoDetailsPage() {
           <CardContent className="space-y-3 text-sm">
             <div><span className="font-medium">Criado em:</span> {formatDate(service.createdAt)}</div>
             <div><span className="font-medium">Atualizado:</span> {formatDate(service.updatedAt)}</div>
-            <div><span className="font-medium">Taxa Paga:</span> {service.isPaidTax ? "✅ Sim" : "❌ Não"}</div>
-            <div><span className="font-medium">Governo Pago:</span> {service.isPaidGovernment ? "✅ Sim" : "❌ Não"}</div>
+            <div><span className="font-medium">Taxa Paga:</span> {service.isPaidTax ? <><Check className="inline h-4 w-4 text-green-600" /> Sim</> : <><X className="inline h-4 w-4 text-red-600" /> Não</>}</div>
+            <div><span className="font-medium">Governo Pago:</span> {service.isPaidGovernment ? <><Check className="inline h-4 w-4 text-green-600" /> Sim</> : <><X className="inline h-4 w-4 text-red-600" /> Não</>}</div>
             {service.paidGovernmentAt && (
               <div><span className="font-medium">Data Pag. Governo:</span> {formatDate(service.paidGovernmentAt)}</div>
             )}
@@ -385,7 +381,7 @@ export default function PedidoDetailsPage() {
                       ? 'bg-yellow-500 text-white'
                       : 'bg-gray-300 text-gray-600'
                   }`}>
-                    {service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? '✓' : '1'}
+                    {service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? <Check className="h-4 w-4" /> : '1'}
                   </div>
                   <div>
                     <h3 className="font-semibold">Revisão de Documentos</h3>
@@ -397,33 +393,33 @@ export default function PedidoDetailsPage() {
               <div className="flex gap-2">
                 <Button
                   onClick={() => {
-                    console.log('🔵 Botão Aprovar clicado', { serviceId, status: service.status });
-                    toast('📋 Abrindo modal de aprovação...');
+                    console.log('Botão Aprovar clicado', { serviceId, status: service.status });
+                    toast('Abrindo modal de aprovação...');
                     setShowApproveModal(true);
                   }}
                   disabled={service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  className="flex-1 gap-1 bg-green-600 hover:bg-green-700"
                 >
-                  ✅ Aprovar
+                  <Check className="h-4 w-4" /> Aprovar
                 </Button>
                 <Button
                   onClick={() => setShowAlmostModal(true)}
                   disabled={service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8}
                   variant="secondary"
-                  className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white"
+                  className="flex-1 gap-1 bg-yellow-500 hover:bg-yellow-600 text-white"
                 >
-                  ⚠️ Quase Lá
+                  <AlertTriangle className="h-4 w-4" /> Quase Lá
                 </Button>
               </div>
 
               {service.status === ServiceStatus.STEP_7_APPROVED && (
-                <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-700">
-                  ✓ Documentos aprovados com sucesso
+                <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-700 flex items-center gap-1">
+                  <Check className="h-4 w-4" /> Documentos aprovados com sucesso
                 </div>
               )}
               {service.status === ServiceStatus.STEP_7_ALMOST && service.almostJustification && (
-                <div className="mt-2 p-2 bg-yellow-50 rounded text-sm text-yellow-700">
-                  ⚠️ Pendente: {service.almostJustification}
+                <div className="mt-2 p-2 bg-yellow-50 rounded text-sm text-yellow-700 flex items-center gap-1">
+                  <AlertTriangle className="h-4 w-4" /> Pendente: {service.almostJustification}
                 </div>
               )}
             </div>
@@ -445,7 +441,7 @@ export default function PedidoDetailsPage() {
                     {service.status === ServiceStatus.STEP_8 ||
                      service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ||
                      service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ||
-                     service.status === ServiceStatus.SUBMITTED ? '✓' : '2'}
+                     service.status === ServiceStatus.SUBMITTED ? <Check className="h-4 w-4" /> : '2'}
                   </div>
                   <div>
                     <h3 className="font-semibold">Inserir Dados do IRN</h3>
@@ -457,9 +453,9 @@ export default function PedidoDetailsPage() {
               <Button
                 onClick={() => setShowIRNModal(true)}
                 disabled={service.status !== ServiceStatus.STEP_7_APPROVED}
-                className="w-full"
+                className="w-full gap-1"
               >
-                📝 Inserir Dados IRN
+                <FileText className="h-4 w-4" /> Inserir Dados IRN
               </Button>
 
               {service.status !== ServiceStatus.STEP_7_APPROVED &&
@@ -467,16 +463,16 @@ export default function PedidoDetailsPage() {
                service.status !== ServiceStatus.STEP_8_CLIENT_CONFIRMED &&
                service.status !== ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT &&
                service.status !== ServiceStatus.SUBMITTED && (
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  ⚠️ Primeiro aprove os documentos (Passo 1)
+                <p className="text-xs text-gray-500 mt-2 text-center flex items-center justify-center gap-1">
+                  <AlertTriangle className="h-3 w-3" /> Primeiro aprove os documentos (Passo 1)
                 </p>
               )}
               {(service.status === ServiceStatus.STEP_8 ||
                 service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ||
                 service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ||
                 service.status === ServiceStatus.SUBMITTED) && (
-                <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-700">
-                  ✓ Dados IRN inseridos: Entidade {service.entity} | Ref {service.reference}
+                <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-700 flex items-center gap-1">
+                  <Check className="h-4 w-4" /> Dados IRN inseridos: Entidade {service.entity} | Ref {service.reference}
                 </div>
               )}
             </div>
@@ -496,7 +492,7 @@ export default function PedidoDetailsPage() {
                   }`}>
                     {service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ||
                      service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ||
-                     service.status === ServiceStatus.SUBMITTED ? '✓' : '3'}
+                     service.status === ServiceStatus.SUBMITTED ? <Check className="h-4 w-4" /> : '3'}
                   </div>
                   <div>
                     <h3 className="font-semibold">Cliente Pagar Taxa Governamental</h3>
@@ -508,14 +504,14 @@ export default function PedidoDetailsPage() {
               {service.status === ServiceStatus.STEP_8 && (
                 <>
                   <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm mb-3">
-                    <p className="text-yellow-800 font-medium">⏳ Aguardando Pagamento do Cliente</p>
+                    <p className="text-yellow-800 font-medium flex items-center gap-1"><AlertTriangle className="h-4 w-4" /> Aguardando Pagamento do Cliente</p>
                     <p className="text-yellow-700 text-xs mt-1">
                       O cliente recebeu email com os dados (Entidade: {service.entity} | Ref: {service.reference}).
                       Quando pagar, ele confirmará no app.lusio.pt.
                     </p>
                   </div>
                   <div className="border-t pt-3">
-                    <p className="text-xs text-gray-600 mb-2">🧪 Para testes/simulação:</p>
+                    <p className="text-xs text-gray-600 mb-2 flex items-center gap-1"><Drama className="h-3 w-3" /> Para testes/simulação:</p>
                     <Button
                       onClick={() => {
                         updateService({
@@ -528,9 +524,9 @@ export default function PedidoDetailsPage() {
                       }}
                       size="sm"
                       variant="outline"
-                      className="w-full text-xs"
+                      className="w-full text-xs gap-1"
                     >
-                      🎭 Simular Confirmação do Cliente
+                      <Drama className="h-3 w-3" /> Simular Confirmação do Cliente
                     </Button>
                   </div>
                 </>
@@ -540,16 +536,16 @@ export default function PedidoDetailsPage() {
                service.status !== ServiceStatus.STEP_8_CLIENT_CONFIRMED &&
                service.status !== ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT &&
                service.status !== ServiceStatus.SUBMITTED && (
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  ⚠️ Primeiro insira os dados do IRN (Passo 2)
+                <p className="text-xs text-gray-500 mt-2 text-center flex items-center justify-center gap-1">
+                  <AlertTriangle className="h-3 w-3" /> Primeiro insira os dados do IRN (Passo 2)
                 </p>
               )}
 
               {(service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ||
                 service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ||
                 service.status === ServiceStatus.SUBMITTED) && (
-                <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-700">
-                  ✓ Cliente confirmou pagamento no app.lusio.pt
+                <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-700 flex items-center gap-1">
+                  <Check className="h-4 w-4" /> Cliente confirmou pagamento no app.lusio.pt
                 </div>
               )}
             </div>
@@ -567,7 +563,7 @@ export default function PedidoDetailsPage() {
                       : 'bg-gray-300 text-gray-600'
                   }`}>
                     {service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ||
-                     service.status === ServiceStatus.SUBMITTED ? '✓' : '4'}
+                     service.status === ServiceStatus.SUBMITTED ? <Check className="h-4 w-4" /> : '4'}
                   </div>
                   <div>
                     <h3 className="font-semibold">Confirmar Recebimento Governo</h3>
@@ -579,22 +575,22 @@ export default function PedidoDetailsPage() {
               <Button
                 onClick={handleConfirmGovernmentPayment}
                 disabled={service.status !== ServiceStatus.STEP_8_CLIENT_CONFIRMED}
-                className="w-full bg-green-600 hover:bg-green-700"
+                className="w-full gap-1 bg-green-600 hover:bg-green-700"
               >
-                ✅ Governo Confirmou
+                <Check className="h-4 w-4" /> Governo Confirmou
               </Button>
 
               {service.status !== ServiceStatus.STEP_8_CLIENT_CONFIRMED &&
                service.status !== ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT &&
                service.status !== ServiceStatus.SUBMITTED && (
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  ⚠️ Primeiro confirme o pagamento do cliente (Passo 3)
+                <p className="text-xs text-gray-500 mt-2 text-center flex items-center justify-center gap-1">
+                  <AlertTriangle className="h-3 w-3" /> Primeiro confirme o pagamento do cliente (Passo 3)
                 </p>
               )}
               {(service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ||
                 service.status === ServiceStatus.SUBMITTED) && (
-                <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-700">
-                  ✓ Governo confirmou recebimento em {formatDate(service.paidGovernmentAt)}
+                <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-700 flex items-center gap-1">
+                  <Check className="h-4 w-4" /> Governo confirmou recebimento em {formatDate(service.paidGovernmentAt)}
                 </div>
               )}
             </div>
@@ -610,7 +606,7 @@ export default function PedidoDetailsPage() {
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-300 text-gray-600'
                   }`}>
-                    {service.status === ServiceStatus.SUBMITTED ? '✓' : '5'}
+                    {service.status === ServiceStatus.SUBMITTED ? <Check className="h-4 w-4" /> : '5'}
                   </div>
                   <div>
                     <h3 className="font-semibold">Inserir Dados do Processo</h3>
@@ -622,20 +618,20 @@ export default function PedidoDetailsPage() {
               <Button
                 onClick={() => setShowProcessDataModal(true)}
                 disabled={service.status !== ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT}
-                className="w-full bg-primary hover:bg-primaryHover"
+                className="w-full gap-1 bg-primary hover:bg-primaryHover"
               >
-                🔐 Inserir Processo e Senha
+                <Lock className="h-4 w-4" /> Inserir Processo e Senha
               </Button>
 
               {service.status !== ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT &&
                service.status !== ServiceStatus.SUBMITTED && (
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  ⚠️ Primeiro confirme o recebimento pelo governo (Passo 4)
+                <p className="text-xs text-gray-500 mt-2 text-center flex items-center justify-center gap-1">
+                  <AlertTriangle className="h-3 w-3" /> Primeiro confirme o recebimento pelo governo (Passo 4)
                 </p>
               )}
               {service.status === ServiceStatus.SUBMITTED && (
-                <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-700">
-                  ✓ Processo {service.processNumber} submetido em {formatDate(service.submissionDate)}
+                <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-700 flex items-center gap-1">
+                  <Check className="h-4 w-4" /> Processo {service.processNumber} submetido em {formatDate(service.submissionDate)}
                 </div>
               )}
             </div>
@@ -727,8 +723,8 @@ export default function PedidoDetailsPage() {
                 <p className="text-xs text-gray-500 mt-1">9 dígitos fornecidos pelo IRN</p>
               </div>
               <div className="bg-blue-50 p-3 rounded-md">
-                <p className="text-xs text-blue-800">
-                  💡 Valor fixo: €250,00 | Validade: 30 dias
+                <p className="text-xs text-blue-800 flex items-center gap-1">
+                  <Lightbulb className="h-3 w-3" /> Valor fixo: €250,00 | Validade: 30 dias
                 </p>
               </div>
               <div className="flex gap-3">
@@ -771,8 +767,8 @@ export default function PedidoDetailsPage() {
                 <p className="text-xs text-gray-500 mt-1">Formato: XXXX-XXXX-XXXX-XXXX</p>
               </div>
               <div className="bg-blue-50 p-3 rounded-md">
-                <p className="text-xs text-blue-800">
-                  💡 Cliente poderá acompanhar o processo no portal IRN com estes dados
+                <p className="text-xs text-blue-800 flex items-center gap-1">
+                  <Lightbulb className="h-3 w-3" /> Cliente poderá acompanhar o processo no portal IRN com estes dados
                 </p>
               </div>
               <div className="flex gap-3">

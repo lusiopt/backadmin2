@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Message, MessageType, MessageStatus, UserRole, CreateMessageInput } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { MessageCircle, Send, FileText, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { MessageCircle, Send, FileText, AlertCircle, CheckCircle2, Clock, File, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -163,33 +163,33 @@ export function MessageThread({ serviceId, messages, onSendMessage }: MessageThr
           <div className="mb-2 flex gap-2">
             <button
               onClick={() => setRequestType("document")}
-              className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+              className={`px-3 py-1 text-xs rounded-lg transition-colors flex items-center gap-1 ${
                 requestType === "document"
                   ? "bg-orange-500 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
-              📄 Documento
+              <File className="w-3 h-3" /> Documento
             </button>
             <button
               onClick={() => setRequestType("clarification")}
-              className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+              className={`px-3 py-1 text-xs rounded-lg transition-colors flex items-center gap-1 ${
                 requestType === "clarification"
                   ? "bg-orange-500 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
-              💬 Esclarecimento
+              <MessageCircle className="w-3 h-3" /> Esclarecimento
             </button>
             <button
               onClick={() => setRequestType("other")}
-              className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+              className={`px-3 py-1 text-xs rounded-lg transition-colors flex items-center gap-1 ${
                 requestType === "other"
                   ? "bg-orange-500 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
-              ✨ Outro
+              <Sparkles className="w-3 h-3" /> Outro
             </button>
           </div>
         )}

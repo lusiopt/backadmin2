@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { LayoutDashboard, LogOut } from "lucide-react";
 
 const navItems = [
   {
     title: "Dashboard",
     href: "/dashboard",
-    icon: "📊",
+    icon: LayoutDashboard,
   },
 ];
 
@@ -44,7 +45,7 @@ export function Sidebar() {
                   : "text-gray-700 hover:bg-gray-100"
               )}
             >
-              <span className="text-lg">{item.icon}</span>
+              <item.icon className="w-5 h-5" />
               {item.title}
             </Link>
           );
@@ -57,7 +58,7 @@ export function Sidebar() {
           onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
         >
-          <span className="text-lg">🚪</span>
+          <LogOut className="w-5 h-5" />
           Sair
         </button>
       </div>

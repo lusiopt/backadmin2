@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, MessageSquare, AlertCircle, FileText, Clock } from "lucide-react";
+import { X, MessageSquare, AlertCircle, FileText, Clock, File, HelpCircle } from "lucide-react";
 import { Service, Message, MessageType, UserRole } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -240,10 +240,10 @@ export function NotificationPanel({
                 {/* Tipo de Solicitação (se houver) */}
                 {notification.requestType && (
                   <div className="mt-2">
-                    <span className="inline-block text-xs px-2 py-1 bg-orange-100 text-orange-800 rounded">
-                      {notification.requestType === "document" && "📄 Documento"}
-                      {notification.requestType === "clarification" && "❓ Esclarecimento"}
-                      {notification.requestType === "other" && "💬 Outro"}
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-orange-100 text-orange-800 rounded">
+                      {notification.requestType === "document" && <><File className="w-3 h-3" /> Documento</>}
+                      {notification.requestType === "clarification" && <><HelpCircle className="w-3 h-3" /> Esclarecimento</>}
+                      {notification.requestType === "other" && <><MessageSquare className="w-3 h-3" /> Outro</>}
                     </span>
                   </div>
                 )}
