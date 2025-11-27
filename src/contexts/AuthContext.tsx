@@ -1,8 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import Cookies from "js-cookie";
 import { AuthUser, AuthContextType, Permission, ROLE_PERMISSIONS, UserRole } from "@/lib/types";
-import { authStorage } from "@/lib/services/auth";
 
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,20 +17,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setIsMounted(true);
 
-    // Load user from Cookies (set by authService.login)
-    const storedUser = authStorage.getUser();
-    if (storedUser) {
-      // Map the API user format to AuthUser format
-      const authUser: AuthUser = {
-        id: storedUser.id,
-        email: storedUser.email,
-        fullName: storedUser.name || storedUser.email,
-        firstName: storedUser.name?.split(' ')[0] || storedUser.email.split('@')[0],
-        role: (storedUser.role as UserRole) || UserRole.BACKOFFICE,
-        active: true,
-        createdAt: new Date().toISOString(),
-      };
-      setUser(authUser);
+    // Load user from auth_user cookie (set by /api/auth/login)
+    const authUserCookie = Cookies.get("auth_user");
+    if (authUserCookie) {
+      try {
+        const storedUser = JSON.parse(authUserCookie);
+        // User from auth_user cookie already has the correct format
+        setUser(storedUser as AuthUser);
+      } catch (e) {
+        console.error("Error parsing auth_user cookie:", e);
+      }
     }
 
     // Load custom permissions configuration
