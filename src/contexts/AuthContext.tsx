@@ -11,7 +11,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [customPermissions, setCustomPermissions] = useState<Record<UserRole, Permission[]> | null>(null);
+  const [rolePermissions, setRolePermissions] = useState<Record<string, Permission[]> | null>(null);
 
   // Load user from Cookies on mount
   useEffect(() => {
@@ -38,23 +38,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Load custom permissions configuration
-    const storedPermissions = localStorage.getItem("role_permissions_config");
-    if (storedPermissions) {
+    // Load permissions from API (fonte unica de verdade)
+    const loadPermissions = async () => {
       try {
-        const parsed = JSON.parse(storedPermissions);
-        setCustomPermissions(parsed);
+        const response = await fetch("/backadmin2/api/permissions");
+        const data = await response.json();
+        if (data.success && data.permissions) {
+          setRolePermissions(data.permissions);
+        }
       } catch (e) {
-        console.error("Error loading custom permissions:", e);
+        console.error("Error loading permissions from API:", e);
+        // Fallback silencioso para ROLE_PERMISSIONS
       }
-    }
+    };
+    loadPermissions();
   }, []);
 
   // Helper: Get permissions for current user role
   const getRolePermissions = (role: UserRole): Permission[] => {
-    // Use custom permissions if available, otherwise fallback to default
-    if (customPermissions && customPermissions[role]) {
-      return customPermissions[role];
+    // Use permissions from API if available, otherwise fallback to default
+    if (rolePermissions && rolePermissions[role]) {
+      return rolePermissions[role];
     }
     return ROLE_PERMISSIONS[role];
   };

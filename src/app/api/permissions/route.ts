@@ -7,7 +7,14 @@ import { getRolePermissions } from '@/lib/services/auth-local';
 export async function GET() {
   try {
     const permissions = await getRolePermissions();
-    return NextResponse.json({ success: true, permissions });
+
+    // Normalizar chaves para lowercase (frontend usa UserRole enum com valores lowercase)
+    const normalizedPermissions: Record<string, string[]> = {};
+    for (const [role, perms] of Object.entries(permissions)) {
+      normalizedPermissions[role.toLowerCase()] = perms;
+    }
+
+    return NextResponse.json({ success: true, permissions: normalizedPermissions });
   } catch (error) {
     console.error('Erro ao listar permissões:', error);
     return NextResponse.json(
