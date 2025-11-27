@@ -6,9 +6,13 @@ import { useServices } from "@/contexts/ServicesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/pedidos/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { MessageThread } from "@/components/MessageThread";
@@ -260,61 +264,61 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                   {isEditingClient ? (
                     <>
-                      <div>
-                        <label className="text-xs text-muted-foreground font-medium">Nome</label>
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName" className="text-xs text-muted-foreground">Nome</Label>
                         <Input
+                          id="firstName"
                           value={editableClient.firstName}
                           onChange={(e) => setEditableClient({...editableClient, firstName: e.target.value})}
-                          className="mt-1"
                         />
                       </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground font-medium">Sobrenome</label>
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName" className="text-xs text-muted-foreground">Sobrenome</Label>
                         <Input
+                          id="lastName"
                           value={editableClient.lastName}
                           onChange={(e) => setEditableClient({...editableClient, lastName: e.target.value})}
-                          className="mt-1"
                         />
                       </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground font-medium">Profissão</label>
+                      <div className="space-y-2">
+                        <Label htmlFor="profession" className="text-xs text-muted-foreground">Profissão</Label>
                         <Input
+                          id="profession"
                           value={editableClient.profession}
                           onChange={(e) => setEditableClient({...editableClient, profession: e.target.value})}
-                          className="mt-1"
                         />
                       </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground font-medium">Nacionalidade</label>
+                      <div className="space-y-2">
+                        <Label htmlFor="nationality" className="text-xs text-muted-foreground">Nacionalidade</Label>
                         <Input
+                          id="nationality"
                           value={editableClient.nationality}
                           onChange={(e) => setEditableClient({...editableClient, nationality: e.target.value})}
-                          className="mt-1"
                         />
                       </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground font-medium">Data Nascimento</label>
+                      <div className="space-y-2">
+                        <Label htmlFor="birthDate" className="text-xs text-muted-foreground">Data Nascimento</Label>
                         <Input
+                          id="birthDate"
                           type="date"
                           value={editableClient.birthDate ? new Date(editableClient.birthDate).toISOString().split('T')[0] : ''}
                           onChange={(e) => setEditableClient({...editableClient, birthDate: e.target.value})}
-                          className="mt-1"
                         />
                       </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground font-medium">Pai</label>
+                      <div className="space-y-2">
+                        <Label htmlFor="fatherFullName" className="text-xs text-muted-foreground">Pai</Label>
                         <Input
+                          id="fatherFullName"
                           value={editableClient.fatherFullName}
                           onChange={(e) => setEditableClient({...editableClient, fatherFullName: e.target.value})}
-                          className="mt-1"
                         />
                       </div>
-                      <div className="col-span-2">
-                        <label className="text-xs text-muted-foreground font-medium">Mãe</label>
+                      <div className="col-span-2 space-y-2">
+                        <Label htmlFor="motherFullName" className="text-xs text-muted-foreground">Mãe</Label>
                         <Input
+                          id="motherFullName"
                           value={editableClient.motherFullName}
                           onChange={(e) => setEditableClient({...editableClient, motherFullName: e.target.value})}
-                          className="mt-1"
                         />
                       </div>
                     </>
@@ -711,132 +715,142 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                 ) : (
                   <>
                 {/* Passo 1 */}
-                <div className="border rounded p-2">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                      service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? 'bg-green-500 text-white' : 'bg-muted'
-                    }`}>
-                      {service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? '✓' : '1'}
+                <Card className="p-3">
+                  <CardContent className="p-0 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? 'bg-green-500 text-white' : 'bg-muted'
+                      }`}>
+                        {service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8 ? '✓' : '1'}
+                      </div>
+                      <h4 className="font-semibold text-sm">Revisão de Documentos</h4>
                     </div>
-                    <h4 className="font-semibold text-xs">Revisão de Documentos</h4>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => setShowApproveModal(true)}
-                      disabled={service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8}
-                      size="sm"
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-xs h-7"
-                    >
-                      ✅ Aprovar
-                    </Button>
-                    <Button
-                      onClick={() => setShowAlmostModal(true)}
-                      disabled={service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8}
-                      size="sm"
-                      variant="secondary"
-                      className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs h-7"
-                    >
-                      ⚠️ Quase Lá
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Passo 2 */}
-                <div className="border rounded p-2">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                      service.status === ServiceStatus.STEP_8 || service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? 'bg-green-500 text-white' : 'bg-muted'
-                    }`}>
-                      {service.status === ServiceStatus.STEP_8 || service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? '✓' : '2'}
-                    </div>
-                    <h4 className="font-semibold text-xs">Inserir Dados IRN</h4>
-                  </div>
-                  <Button
-                    onClick={() => setShowIRNModal(true)}
-                    disabled={service.status !== ServiceStatus.STEP_7_APPROVED}
-                    size="sm"
-                    className="w-full sm:max-w-[250px] sm:mx-auto text-xs h-7"
-                  >
-                    📝 Dados IRN
-                  </Button>
-                  {service.entity && (
-                    <p className="text-xs text-green-700 mt-1">✓ Ent: {service.entity} | Ref: {service.reference}</p>
-                  )}
-                </div>
-
-                {/* Passo 3 */}
-                <div className="border rounded p-2">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                      service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? 'bg-green-500 text-white' : service.status === ServiceStatus.STEP_8 ? 'bg-yellow-500 text-white animate-pulse' : 'bg-muted'
-                    }`}>
-                      {service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? '✓' : '3'}
-                    </div>
-                    <h4 className="font-semibold text-xs">Cliente Pagar (€250)</h4>
-                  </div>
-                  {service.status === ServiceStatus.STEP_8 && (
-                    <div className="space-y-1.5">
-                      <p className="text-xs text-yellow-700">⏳ Aguardando pagamento...</p>
+                    <div className="flex gap-2">
                       <Button
-                        onClick={() => {
-                          updateService(service.id, { status: ServiceStatus.STEP_8_CLIENT_CONFIRMED });
-                          alert("✅ Pagamento simulado");
-                        }}
+                        onClick={() => setShowApproveModal(true)}
+                        disabled={service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8}
                         size="sm"
-                        variant="outline"
-                        className="w-full sm:max-w-[250px] sm:mx-auto text-xs h-7"
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-xs h-8"
                       >
-                        🎭 Simular Pagamento
+                        Aprovar
+                      </Button>
+                      <Button
+                        onClick={() => setShowAlmostModal(true)}
+                        disabled={service.status === ServiceStatus.STEP_7_APPROVED || service.status === ServiceStatus.STEP_8}
+                        size="sm"
+                        variant="secondary"
+                        className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs h-8"
+                      >
+                        Quase Lá
                       </Button>
                     </div>
-                  )}
-                  {service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED && (
-                    <p className="text-xs text-green-700">✓ Cliente confirmou pagamento</p>
-                  )}
-                </div>
+                  </CardContent>
+                </Card>
+
+                {/* Passo 2 */}
+                <Card className="p-3">
+                  <CardContent className="p-0 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        service.status === ServiceStatus.STEP_8 || service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? 'bg-green-500 text-white' : 'bg-muted'
+                      }`}>
+                        {service.status === ServiceStatus.STEP_8 || service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? '✓' : '2'}
+                      </div>
+                      <h4 className="font-semibold text-sm">Inserir Dados IRN</h4>
+                    </div>
+                    <Button
+                      onClick={() => setShowIRNModal(true)}
+                      disabled={service.status !== ServiceStatus.STEP_7_APPROVED}
+                      size="sm"
+                      className="w-full sm:max-w-[250px] sm:mx-auto text-xs h-8"
+                    >
+                      Dados IRN
+                    </Button>
+                    {service.entity && (
+                      <p className="text-xs text-green-700">Ent: {service.entity} | Ref: {service.reference}</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Passo 3 */}
+                <Card className="p-3">
+                  <CardContent className="p-0 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? 'bg-green-500 text-white' : service.status === ServiceStatus.STEP_8 ? 'bg-yellow-500 text-white animate-pulse' : 'bg-muted'
+                      }`}>
+                        {service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED ? '✓' : '3'}
+                      </div>
+                      <h4 className="font-semibold text-sm">Cliente Pagar (€250)</h4>
+                    </div>
+                    {service.status === ServiceStatus.STEP_8 && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-yellow-700">Aguardando pagamento...</p>
+                        <Button
+                          onClick={() => {
+                            updateService(service.id, { status: ServiceStatus.STEP_8_CLIENT_CONFIRMED });
+                            alert("Pagamento simulado");
+                          }}
+                          size="sm"
+                          variant="outline"
+                          className="w-full sm:max-w-[250px] sm:mx-auto text-xs h-8"
+                        >
+                          Simular Pagamento
+                        </Button>
+                      </div>
+                    )}
+                    {service.status === ServiceStatus.STEP_8_CLIENT_CONFIRMED && (
+                      <p className="text-xs text-green-700">Cliente confirmou pagamento</p>
+                    )}
+                  </CardContent>
+                </Card>
 
                 {/* Passo 4 */}
-                <div className="border rounded p-2">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                      service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ? 'bg-green-500 text-white' : 'bg-muted'
-                    }`}>
-                      {service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ? '✓' : '4'}
+                <Card className="p-3">
+                  <CardContent className="p-0 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ? 'bg-green-500 text-white' : 'bg-muted'
+                      }`}>
+                        {service.status === ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT ? '✓' : '4'}
+                      </div>
+                      <h4 className="font-semibold text-sm">Confirmar Governo</h4>
                     </div>
-                    <h4 className="font-semibold text-xs">Confirmar Governo</h4>
-                  </div>
-                  <Button
-                    onClick={handleConfirmGovernment}
-                    disabled={service.status !== ServiceStatus.STEP_8_CLIENT_CONFIRMED}
-                    size="sm"
-                    className="w-full sm:max-w-[250px] sm:mx-auto bg-green-600 hover:bg-green-700 text-xs h-7"
-                  >
-                    ✅ Governo Confirmou
-                  </Button>
-                </div>
+                    <Button
+                      onClick={handleConfirmGovernment}
+                      disabled={service.status !== ServiceStatus.STEP_8_CLIENT_CONFIRMED}
+                      size="sm"
+                      className="w-full sm:max-w-[250px] sm:mx-auto bg-green-600 hover:bg-green-700 text-xs h-8"
+                    >
+                      Governo Confirmou
+                    </Button>
+                  </CardContent>
+                </Card>
 
                 {/* Passo 5 */}
-                <div className="border rounded p-2">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                      service.status === ServiceStatus.SUBMITTED ? 'bg-green-500 text-white' : 'bg-muted'
-                    }`}>
-                      {service.status === ServiceStatus.SUBMITTED ? '✓' : '5'}
+                <Card className="p-3">
+                  <CardContent className="p-0 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        service.status === ServiceStatus.SUBMITTED ? 'bg-green-500 text-white' : 'bg-muted'
+                      }`}>
+                        {service.status === ServiceStatus.SUBMITTED ? '✓' : '5'}
+                      </div>
+                      <h4 className="font-semibold text-sm">Inserir Processo e Senha</h4>
                     </div>
-                    <h4 className="font-semibold text-xs">Inserir Processo e Senha</h4>
-                  </div>
-                  <Button
-                    onClick={() => setShowProcessModal(true)}
-                    disabled={service.status !== ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT}
-                    size="sm"
-                    className="w-full sm:max-w-[250px] sm:mx-auto text-xs h-7"
-                  >
-                    🔐 Processo e Senha
-                  </Button>
-                  {service.status === ServiceStatus.SUBMITTED && (
-                    <p className="text-xs text-green-700 mt-1">✓ Proc: {service.processNumber}</p>
-                  )}
-                </div>
+                    <Button
+                      onClick={() => setShowProcessModal(true)}
+                      disabled={service.status !== ServiceStatus.STEP_8_CONFIRMED_BY_GOVERNMENT}
+                      size="sm"
+                      className="w-full sm:max-w-[250px] sm:mx-auto text-xs h-8"
+                    >
+                      Processo e Senha
+                    </Button>
+                    {service.status === ServiceStatus.SUBMITTED && (
+                      <p className="text-xs text-green-700">Proc: {service.processNumber}</p>
+                    )}
+                  </CardContent>
+                </Card>
                   </>
                 )}
               </TabsContent>
@@ -852,104 +866,135 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
       </Sheet>
 
       {/* Mini Modals */}
-      {showApproveModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="font-bold text-lg mb-3">Aprovar Documentos?</h3>
-            <p className="text-sm text-muted-foreground mb-4">Cliente receberá email de confirmação.</p>
-            <div className="flex gap-2">
-              <Button onClick={handleApprove} className="flex-1 bg-green-600 hover:bg-green-700">Confirmar</Button>
-              <Button onClick={() => setShowApproveModal(false)} variant="outline" className="flex-1">Cancelar</Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Aprovar Documentos?</DialogTitle>
+            <DialogDescription>
+              Cliente receberá email de confirmação.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:justify-start">
+            <Button onClick={handleApprove} className="flex-1 bg-green-600 hover:bg-green-700">
+              Confirmar
+            </Button>
+            <Button onClick={() => setShowApproveModal(false)} variant="outline" className="flex-1">
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {showAlmostModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="font-bold text-lg mb-3">Quase Lá</h3>
-            <p className="text-sm text-muted-foreground mb-2">Explique o que falta:</p>
-            <textarea
+      <Dialog open={showAlmostModal} onOpenChange={setShowAlmostModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Quase Lá</DialogTitle>
+            <DialogDescription>
+              Explique o que falta para o cliente:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="almost-note">Nota</Label>
+            <Textarea
+              id="almost-note"
               value={almostNote}
               onChange={(e) => setAlmostNote(e.target.value)}
-              className="w-full border rounded p-2 text-sm mb-4"
               rows={3}
               placeholder="Ex: Falta certidão de nascimento..."
             />
-            <div className="flex gap-2">
-              <Button onClick={handleAlmost} className="flex-1">Enviar</Button>
-              <Button onClick={() => setShowAlmostModal(false)} variant="outline" className="flex-1">Cancelar</Button>
-            </div>
           </div>
-        </div>
-      )}
+          <DialogFooter className="flex gap-2 sm:justify-start">
+            <Button onClick={handleAlmost} className="flex-1">Enviar</Button>
+            <Button onClick={() => setShowAlmostModal(false)} variant="outline" className="flex-1">
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {showIRNModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="font-bold text-lg mb-3">Dados do IRN</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium">Entidade (5 dígitos)</label>
-                <Input
-                  value={entity}
-                  onChange={(e) => setEntity(e.target.value)}
-                  placeholder="Ex: 12345"
-                  maxLength={5}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Referência (9 dígitos)</label>
-                <Input
-                  value={reference}
-                  onChange={(e) => setReference(e.target.value)}
-                  placeholder="Ex: 123 456 789"
-                  maxLength={11}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Valor (€)</label>
-                <Input value="200" disabled />
-              </div>
+      <Dialog open={showIRNModal} onOpenChange={setShowIRNModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Dados do IRN</DialogTitle>
+            <DialogDescription>
+              Preencha os dados de pagamento do IRN.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="entity">Entidade (5 dígitos)</Label>
+              <Input
+                id="entity"
+                value={entity}
+                onChange={(e) => setEntity(e.target.value)}
+                placeholder="Ex: 12345"
+                maxLength={5}
+              />
             </div>
-            <div className="flex gap-2 mt-4">
-              <Button onClick={handleAddIRN} className="flex-1 bg-green-600 hover:bg-green-700">Submeter</Button>
-              <Button onClick={() => setShowIRNModal(false)} variant="outline" className="flex-1">Cancelar</Button>
+            <div className="space-y-2">
+              <Label htmlFor="reference">Referência (9 dígitos)</Label>
+              <Input
+                id="reference"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                placeholder="Ex: 123 456 789"
+                maxLength={11}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="value">Valor (€)</Label>
+              <Input id="value" value="200" disabled />
             </div>
           </div>
-        </div>
-      )}
+          <DialogFooter className="flex gap-2 sm:justify-start">
+            <Button onClick={handleAddIRN} className="flex-1 bg-green-600 hover:bg-green-700">
+              Submeter
+            </Button>
+            <Button onClick={() => setShowIRNModal(false)} variant="outline" className="flex-1">
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {showProcessModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="font-bold text-lg mb-3">Dados do Processo</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium">Número do Processo</label>
-                <Input
-                  value={processNumber}
-                  onChange={(e) => setProcessNumber(e.target.value)}
-                  placeholder="Ex: 2024/12345"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Senha</label>
-                <Input
-                  value={processPassword}
-                  onChange={(e) => setProcessPassword(e.target.value)}
-                  placeholder="Senha do processo"
-                />
-              </div>
+      <Dialog open={showProcessModal} onOpenChange={setShowProcessModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Dados do Processo</DialogTitle>
+            <DialogDescription>
+              Insira o número do processo e senha.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="process-number">Número do Processo</Label>
+              <Input
+                id="process-number"
+                value={processNumber}
+                onChange={(e) => setProcessNumber(e.target.value)}
+                placeholder="Ex: 2024/12345"
+              />
             </div>
-            <div className="flex gap-2 mt-4">
-              <Button onClick={handleSubmitProcess} className="flex-1 bg-green-600 hover:bg-green-700">Submeter</Button>
-              <Button onClick={() => setShowProcessModal(false)} variant="outline" className="flex-1">Cancelar</Button>
+            <div className="space-y-2">
+              <Label htmlFor="process-password">Senha</Label>
+              <Input
+                id="process-password"
+                value={processPassword}
+                onChange={(e) => setProcessPassword(e.target.value)}
+                placeholder="Senha do processo"
+              />
             </div>
           </div>
-        </div>
-      )}
+          <DialogFooter className="flex gap-2 sm:justify-start">
+            <Button onClick={handleSubmitProcess} className="flex-1 bg-green-600 hover:bg-green-700">
+              Submeter
+            </Button>
+            <Button onClick={() => setShowProcessModal(false)} variant="outline" className="flex-1">
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 });
