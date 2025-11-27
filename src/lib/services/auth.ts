@@ -133,8 +133,8 @@ apiClient.interceptors.response.use(
           (window as any).toast.error('Sessão expirada. Faça login novamente.');
         }
 
-        // Redirecionar para login
-        window.location.href = '/login?expired=true';
+        // Redirecionar para login (usando basePath)
+        window.location.href = '/backadmin2/login?expired=true';
       }
     }
     return Promise.reject(error);

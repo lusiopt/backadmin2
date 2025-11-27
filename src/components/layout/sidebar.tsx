@@ -18,7 +18,7 @@ export function Sidebar() {
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("isAuthenticated");
-      window.location.href = "/login";
+      window.location.href = "/backadmin2/login";
     }
   };
 
