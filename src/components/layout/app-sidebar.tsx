@@ -5,10 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import {
   FileText,
-  Users,
   Settings,
   BarChart3,
-  Home,
 } from "lucide-react";
 
 import { NavMain } from "@/components/layout/nav-main";
@@ -32,11 +30,6 @@ const navItems = [
     url: "/",
     icon: FileText,
     isActive: true,
-  },
-  {
-    title: "Usuarios",
-    url: "/usuarios",
-    icon: Users,
   },
   {
     title: "Relatorios",

@@ -2,30 +2,30 @@
 
 /**
  * Página de Login - Backadmin Lusio
- * Integrada com API Real
+ * Autenticação local via PostgreSQL
  */
 
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { useLogin } from "@/hooks/auth";
+import { useLocalLogin } from "@/hooks/auth/useLocalAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 
 function LoginForm() {
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/';
   const isExpired = searchParams.get('expired') === 'true';
 
-  const { mutate: login, isPending, error } = useLogin({ redirectUrl });
+  const { mutate: doLogin, isPending, error } = useLocalLogin({ redirectUrl });
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    login({ email, password });
+    doLogin({ login, password });
   };
 
   return (
@@ -49,7 +49,7 @@ function LoginForm() {
             Lusio Backoffice
           </CardTitle>
           <CardDescription className="text-center text-base text-gray-600">
-            Portal da Advogada - Gestão de Processos
+            Portal da Advogada - Gestao de Processos
           </CardDescription>
         </CardHeader>
 
@@ -63,28 +63,29 @@ function LoginForm() {
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                   <div className="flex-1">
-                    <p className="font-semibold text-amber-800 text-sm">Sessão Expirada</p>
+                    <p className="font-semibold text-amber-800 text-sm">Sessao Expirada</p>
                     <p className="text-amber-700 text-xs mt-1">
-                      Sua sessão expirou ou o token é inválido. Por favor, faça login novamente.
+                      Sua sessao expirou ou o token e invalido. Por favor, faca login novamente.
                     </p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Email */}
+            {/* Login (Username) */}
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-semibold text-gray-700">
-                Email
+              <label htmlFor="login" className="text-sm font-semibold text-gray-700">
+                Login
               </label>
               <Input
-                id="email"
-                type="email"
-                placeholder="admin@luzio.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="login"
+                type="text"
+                placeholder="seu.usuario"
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
                 required
                 disabled={isPending}
+                autoComplete="username"
                 className="h-12 border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primaryLight transition-all"
               />
             </div>
@@ -103,6 +104,7 @@ function LoginForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isPending}
+                  autoComplete="current-password"
                   className="h-12 border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primaryLight transition-all pr-12"
                 />
                 <button
@@ -136,7 +138,7 @@ function LoginForm() {
                   <div className="flex-1">
                     <p className="font-semibold text-red-800 text-sm">Erro ao fazer login</p>
                     <p className="text-red-700 text-xs mt-1">
-                      {(error as any)?.message || 'Email ou senha inválidos. Verifique suas credenciais.'}
+                      {(error as any)?.message || 'Login ou senha invalidos. Verifique suas credenciais.'}
                     </p>
                   </div>
                 </div>
@@ -166,26 +168,6 @@ function LoginForm() {
                 </span>
               )}
             </Button>
-
-            {/* Credenciais de Teste */}
-            <div className="bg-primaryLight/30 rounded-lg p-4 border-2 border-primary/20">
-              <p className="text-xs text-center text-primary font-semibold mb-2">
-                🔐 Credenciais de Acesso (Staging)
-              </p>
-              <div className="space-y-1 text-xs text-gray-700">
-                <p className="flex justify-between items-center">
-                  <span className="font-medium">Email:</span>
-                  <code className="bg-white px-2 py-1 rounded">admin@luzio.com</code>
-                </p>
-                <p className="flex justify-between items-center">
-                  <span className="font-medium">Senha:</span>
-                  <code className="bg-white px-2 py-1 rounded">admin123</code>
-                </p>
-              </div>
-              <p className="text-xs text-center text-gray-600 mt-2">
-                Ambiente de desenvolvimento conectado à API real
-              </p>
-            </div>
           </form>
         </CardContent>
       </Card>
