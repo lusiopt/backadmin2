@@ -214,8 +214,8 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                 <p className="text-sm text-muted-foreground mt-1">{service.user?.email || 'N/A'}</p>
               </div>
               <div className="flex gap-2 items-center">
-                <Badge variant="secondary" className="text-xs">
-                  {service.id}
+                <Badge variant="secondary" className="text-xs hidden sm:inline-flex" title={service.id}>
+                  {service.id.slice(0, 8)}...
                 </Badge>
                 <StatusBadge status={service.status} />
               </div>

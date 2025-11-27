@@ -30,9 +30,6 @@ export function MobileServiceCard({
           <h3 className="text-base font-semibold text-gray-900 truncate">
             {service.user?.fullName || 'N/A'}
           </h3>
-          <p className="text-xs text-gray-500 font-mono mt-0.5">
-            ID: {service.id}
-          </p>
         </div>
         <StatusBadge status={service.status} />
       </div>
