@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Header } from "@/components/layout/header";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 
@@ -171,8 +172,6 @@ export default function DashboardPage() {
           setSearchInput={setSearchInput}
           search={search}
           setSearch={setSearch}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
           isRefreshing={isRefreshing}
           onRefresh={handleRefresh}
           uniqueStatuses={uniqueStatuses}
@@ -193,35 +192,69 @@ export default function DashboardPage() {
 
         {/* Main Content */}
         <div className="flex-1 p-4 sm:p-6">
-          {viewMode === "list" ? (
-            <ListView
-              services={paginatedServices}
-              totalCount={totalCount}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              itemsPerPage={itemsPerPage}
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              onItemsPerPageChange={(value) => {
-                setItemsPerPage(value);
-                setCurrentPage(1);
-              }}
-              onPageChange={setCurrentPage}
-              onServiceClick={handleServiceClick}
-              onSort={handleSort}
-              hasViewPermission={hasPermission(Permission.VIEW_SERVICES)}
-              getUnreadMessagesCount={getUnreadMessagesCount}
-            />
-          ) : (
-            <ByUserView
-              servicesByUser={servicesByUser}
-              expandedUsers={expandedUsers}
-              onToggleUser={toggleUserExpand}
-              onServiceClick={handleServiceClick}
-              hasViewPermission={hasPermission(Permission.VIEW_SERVICES)}
-              getUnreadMessagesCount={getUnreadMessagesCount}
-            />
-          )}
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "list" | "by-user")}>
+            {/* Title with Tabs */}
+            <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold">Processos</h2>
+                <TabsList className="mt-2 bg-muted">
+                  <TabsTrigger value="list">Lista</TabsTrigger>
+                  <TabsTrigger value="by-user">Por Usuario</TabsTrigger>
+                </TabsList>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">{totalCount} processos</span>
+                <span className="text-muted-foreground">|</span>
+                <span className="text-sm text-muted-foreground">Items:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-3 py-1.5 border border-input rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Tab Contents */}
+            <TabsContent value="list" className="mt-0">
+              <ListView
+                services={paginatedServices}
+                totalCount={totalCount}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                itemsPerPage={itemsPerPage}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onItemsPerPageChange={(value) => {
+                  setItemsPerPage(value);
+                  setCurrentPage(1);
+                }}
+                onPageChange={setCurrentPage}
+                onServiceClick={handleServiceClick}
+                onSort={handleSort}
+                hasViewPermission={hasPermission(Permission.VIEW_SERVICES)}
+                getUnreadMessagesCount={getUnreadMessagesCount}
+              />
+            </TabsContent>
+
+            <TabsContent value="by-user" className="mt-0">
+              <ByUserView
+                servicesByUser={servicesByUser}
+                expandedUsers={expandedUsers}
+                onToggleUser={toggleUserExpand}
+                onServiceClick={handleServiceClick}
+                hasViewPermission={hasPermission(Permission.VIEW_SERVICES)}
+                getUnreadMessagesCount={getUnreadMessagesCount}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Service Modal */}

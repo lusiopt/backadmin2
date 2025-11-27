@@ -32,10 +32,6 @@ interface HeaderProps {
   search: string;
   setSearch: (value: string) => void;
 
-  // View Mode
-  viewMode: "list" | "by-user";
-  setViewMode: (mode: "list" | "by-user") => void;
-
   // Refresh
   isRefreshing: boolean;
   onRefresh: () => void;
@@ -68,8 +64,6 @@ export function Header({
   setSearchInput,
   search,
   setSearch,
-  viewMode,
-  setViewMode,
   isRefreshing,
   onRefresh,
   uniqueStatuses,
@@ -106,26 +100,6 @@ export function Header({
         </Breadcrumb>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* View Toggle */}
-          <div className="flex gap-1 p-1 bg-muted rounded-lg">
-            <Button
-              variant={viewMode === "list" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("list")}
-              className="h-7 px-2 text-xs"
-            >
-              Lista
-            </Button>
-            <Button
-              variant={viewMode === "by-user" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("by-user")}
-              className="h-7 px-2 text-xs"
-            >
-              Por Usuario
-            </Button>
-          </div>
-
           {/* Refresh */}
           <Button
             variant="ghost"

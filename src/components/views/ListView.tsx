@@ -52,36 +52,13 @@ export function ListView({
 
   return (
     <>
-      {/* List Header */}
-      <div className="mb-4 sm:mb-6 flex items-center justify-between">
-        <h2 className="text-xl sm:text-2xl font-bold">
-          Processos ({totalCount})
-        </h2>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Items por página:</span>
-          <select
-            value={itemsPerPage}
-            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-        </div>
-      </div>
-
       {/* Desktop Table View - Hidden on mobile */}
       <Card className="hidden lg:block">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="border-b bg-gray-50">
+            <thead className="border-b bg-muted">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   <button
                     onClick={() => onSort('name')}
                     className="flex items-center gap-2 hover:text-gray-900 transition-colors"
@@ -126,14 +103,9 @@ export function ListView({
               {services.map((service) => (
                 <tr
                   key={service.id}
-                  className="hover:bg-gray-50 cursor-pointer"
+                  className="hover:bg-muted/50 cursor-pointer"
                   onClick={() => onServiceClick(service as ServiceWithRelations)}
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500 font-mono">
-                      {service.id}
-                    </div>
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
                       {service.user?.fullName || 'N/A'}
