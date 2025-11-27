@@ -22,8 +22,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (authUserCookie) {
       try {
         const storedUser = JSON.parse(authUserCookie);
-        // User from auth_user cookie already has the correct format
-        setUser(storedUser as AuthUser);
+        // Map LocalUser format to AuthUser format
+        const authUser: AuthUser = {
+          id: storedUser.id,
+          email: storedUser.email || storedUser.login,
+          fullName: storedUser.fullName,
+          firstName: storedUser.fullName?.split(' ')[0] || storedUser.login,
+          role: storedUser.role?.toLowerCase() as UserRole,
+          active: storedUser.active ?? true,
+          createdAt: new Date().toISOString(),
+        };
+        setUser(authUser);
       } catch (e) {
         console.error("Error parsing auth_user cookie:", e);
       }
