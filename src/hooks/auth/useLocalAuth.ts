@@ -9,6 +9,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import type { LocalUser } from '@/lib/services/auth-local';
 
+// BasePath para API calls (Next.js não adiciona automaticamente em fetch)
+const API_BASE = '/backadmin2';
+
 interface LoginCredentials {
   login: string;
   password: string;
@@ -34,7 +37,7 @@ export function useLocalLogin(options?: UseLocalLoginOptions) {
 
   return useMutation({
     mutationFn: async (credentials: LoginCredentials): Promise<LoginResponse> => {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
@@ -72,7 +75,7 @@ export function useLocalLogout() {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/auth/logout', {
+      const response = await fetch(`${API_BASE}/api/auth/logout`, {
         method: 'POST',
       });
 
@@ -102,7 +105,7 @@ export function useLocalUser() {
     queryKey: ['localUser'],
     queryFn: async (): Promise<LocalUser | null> => {
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch(`${API_BASE}/api/auth/me`);
 
         if (!response.ok) {
           return null;
