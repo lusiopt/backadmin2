@@ -1,11 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserRole, Permission, AuthUser } from "@/lib/types";
-import { mockSystemUsers } from "@/lib/mockData";
-import { Plus, Edit, Trash2, X, Eye, EyeOff, Users, Shield, Check, ArrowLeft } from "lucide-react";
+import { UserRole, Permission } from "@/lib/types";
+import { Plus, Edit, Trash2, X, Eye, EyeOff, Users, Shield, Check, ArrowLeft, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
+
+const API_BASE = "/backadmin2";
+
+interface ApiUser {
+  id: string;
+  login: string;
+  fullName: string;
+  email: string | null;
+  role: UserRole;
+  active: boolean;
+}
 
 const ROLE_LABELS: Record<UserRole, string> = {
   [UserRole.ADMIN]: "Admin",
@@ -167,6 +178,7 @@ const PERMISSION_LABELS: Record<Permission, { label: string; description: string
 
 interface UserFormData {
   id?: string;
+  login: string;
   fullName: string;
   email: string;
   password: string;
@@ -179,11 +191,14 @@ export default function ConfigPage() {
   const [activeTab, setActiveTab] = useState<"users" | "roles">("users");
 
   // User Management State
-  const [users, setUsers] = useState<AuthUser[]>([]);
+  const [users, setUsers] = useState<ApiUser[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<AuthUser | null>(null);
+  const [editingUser, setEditingUser] = useState<ApiUser | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<UserFormData>({
+    login: "",
     fullName: "",
     email: "",
     password: "",
@@ -192,42 +207,58 @@ export default function ConfigPage() {
 
   // Role Permissions State
   const [selectedRole, setSelectedRole] = useState<UserRole>(UserRole.ADMIN);
-  const [configs, setConfigs] = useState<Record<UserRole, Permission[]>>({
-    [UserRole.ADMIN]: Object.values(Permission),
-    [UserRole.BACKOFFICE]: [],
-    [UserRole.ADVOGADA]: [],
-    [UserRole.VISUALIZADOR]: [],
-  });
+  const [configs, setConfigs] = useState<Record<string, string[]>>({});
+  const [isLoadingPermissions, setIsLoadingPermissions] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Load users from localStorage
-  useEffect(() => {
-    const savedUsers = localStorage.getItem("backadmin_users");
-    if (savedUsers) {
-      try {
-        setUsers(JSON.parse(savedUsers));
-      } catch (e) {
-        console.error("Error loading users:", e);
-        setUsers(mockSystemUsers);
+  // Fetch users from API
+  const fetchUsers = useCallback(async () => {
+    try {
+      setIsLoadingUsers(true);
+      const response = await fetch(`${API_BASE}/api/users`);
+      const data = await response.json();
+      if (data.success) {
+        setUsers(data.users);
+      } else {
+        toast.error("Erro ao carregar usuários");
       }
-    } else {
-      setUsers(mockSystemUsers);
-      localStorage.setItem("backadmin_users", JSON.stringify(mockSystemUsers));
+    } catch (error) {
+      console.error("Error loading users:", error);
+      toast.error("Erro ao carregar usuários");
+    } finally {
+      setIsLoadingUsers(false);
     }
   }, []);
 
-  // Load role permissions from localStorage
-  useEffect(() => {
-    const savedConfig = localStorage.getItem("role_permissions_config");
-    if (savedConfig) {
-      try {
-        setConfigs(JSON.parse(savedConfig));
-      } catch (e) {
-        console.error("Error loading permissions:", e);
+  // Fetch permissions from API
+  const fetchPermissions = useCallback(async () => {
+    try {
+      setIsLoadingPermissions(true);
+      const response = await fetch(`${API_BASE}/api/permissions`);
+      const data = await response.json();
+      if (data.success) {
+        setConfigs(data.permissions);
+      } else {
+        toast.error("Erro ao carregar permissões");
       }
+    } catch (error) {
+      console.error("Error loading permissions:", error);
+      toast.error("Erro ao carregar permissões");
+    } finally {
+      setIsLoadingPermissions(false);
     }
   }, []);
+
+  // Load users on mount
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Load permissions on mount
+  useEffect(() => {
+    fetchPermissions();
+  }, [fetchPermissions]);
 
   // Check permission
   if (!user || !hasPermission(Permission.MANAGE_USERS)) {
@@ -242,24 +273,21 @@ export default function ConfigPage() {
   }
 
   // User Management Functions
-  const saveUsers = (newUsers: AuthUser[]) => {
-    setUsers(newUsers);
-    localStorage.setItem("backadmin_users", JSON.stringify(newUsers));
-  };
-
-  const openModal = (user?: AuthUser) => {
-    if (user) {
-      setEditingUser(user);
+  const openModal = (userToEdit?: ApiUser) => {
+    if (userToEdit) {
+      setEditingUser(userToEdit);
       setFormData({
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
+        id: userToEdit.id,
+        login: userToEdit.login,
+        fullName: userToEdit.fullName,
+        email: userToEdit.email || "",
         password: "",
-        role: user.role,
+        role: userToEdit.role,
       });
     } else {
       setEditingUser(null);
       setFormData({
+        login: "",
         fullName: "",
         email: "",
         password: "",
@@ -274,6 +302,7 @@ export default function ConfigPage() {
     setIsModalOpen(false);
     setEditingUser(null);
     setFormData({
+      login: "",
       fullName: "",
       email: "",
       password: "",
@@ -281,47 +310,82 @@ export default function ConfigPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
 
-    if (editingUser) {
-      const updatedUsers = users.map((u) =>
-        u.id === editingUser.id
-          ? {
-              ...u,
-              fullName: formData.fullName,
-              email: formData.email,
-              role: formData.role,
-              ...(formData.password ? { password: formData.password } : {}),
-            }
-          : u
-      );
-      saveUsers(updatedUsers);
-    } else {
-      const newUser: AuthUser = {
-        id: `user_${Date.now()}`,
-        fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role,
-        active: true,
-        createdAt: new Date().toISOString(),
-      };
-      saveUsers([...users, newUser]);
+    try {
+      if (editingUser) {
+        // Update existing user
+        const response = await fetch(`${API_BASE}/api/users/${editingUser.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName: formData.fullName,
+            email: formData.email || null,
+            role: formData.role,
+            ...(formData.password ? { password: formData.password } : {}),
+          }),
+        });
+        const data = await response.json();
+        if (data.success) {
+          toast.success("Usuário atualizado com sucesso!");
+          fetchUsers();
+        } else {
+          toast.error(data.error || "Erro ao atualizar usuário");
+        }
+      } else {
+        // Create new user
+        const response = await fetch(`${API_BASE}/api/users`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            login: formData.login,
+            password: formData.password,
+            fullName: formData.fullName,
+            email: formData.email || null,
+            role: formData.role,
+          }),
+        });
+        const data = await response.json();
+        if (data.success) {
+          toast.success("Usuário criado com sucesso!");
+          fetchUsers();
+        } else {
+          toast.error(data.error || "Erro ao criar usuário");
+        }
+      }
+      closeModal();
+    } catch (error) {
+      console.error("Error saving user:", error);
+      toast.error("Erro ao salvar usuário");
+    } finally {
+      setIsSaving(false);
     }
-
-    closeModal();
   };
 
-  const handleDelete = (userId: string) => {
-    if (userId === user.id) {
-      alert("Você não pode deletar seu próprio usuário!");
+  const handleDelete = async (userId: string) => {
+    if (userId === user?.id) {
+      toast.error("Você não pode deletar seu próprio usuário!");
       return;
     }
 
     if (confirm("Tem certeza que deseja deletar este usuário?")) {
-      const updatedUsers = users.filter((u) => u.id !== userId);
-      saveUsers(updatedUsers);
+      try {
+        const response = await fetch(`${API_BASE}/api/users/${userId}`, {
+          method: "DELETE",
+        });
+        const data = await response.json();
+        if (data.success) {
+          toast.success("Usuário removido com sucesso!");
+          fetchUsers();
+        } else {
+          toast.error(data.error || "Erro ao remover usuário");
+        }
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        toast.error("Erro ao remover usuário");
+      }
     }
   };
 
@@ -329,9 +393,10 @@ export default function ConfigPage() {
   const togglePermission = (role: UserRole, permission: Permission) => {
     setConfigs((prev) => {
       const current = prev[role] || [];
-      const updated = current.includes(permission)
-        ? current.filter((p) => p !== permission)
-        : [...current, permission];
+      const permKey = permission as string;
+      const updated = current.includes(permKey)
+        ? current.filter((p) => p !== permKey)
+        : [...current, permKey];
 
       setHasChanges(true);
       return { ...prev, [role]: updated };
@@ -341,16 +406,17 @@ export default function ConfigPage() {
   const toggleAllCategoryPermissions = (role: UserRole, category: string, permissions: Permission[]) => {
     setConfigs(prev => {
       const rolePerms = prev[role] || [];
+      const permKeys = permissions.map(p => p as string);
       // Verificar se todas as permissões da categoria já estão selecionadas
-      const allSelected = permissions.every(p => rolePerms.includes(p));
+      const allSelected = permKeys.every(p => rolePerms.includes(p));
 
-      let newPermissions: Permission[];
+      let newPermissions: string[];
       if (allSelected) {
         // Remover todas as permissões da categoria
-        newPermissions = rolePerms.filter(p => !permissions.includes(p));
+        newPermissions = rolePerms.filter(p => !permKeys.includes(p));
       } else {
         // Adicionar todas as permissões da categoria
-        const permissionsToAdd = permissions.filter(p => !rolePerms.includes(p));
+        const permissionsToAdd = permKeys.filter(p => !rolePerms.includes(p));
         newPermissions = [...rolePerms, ...permissionsToAdd];
       }
 
@@ -362,17 +428,38 @@ export default function ConfigPage() {
     });
   };
 
-  const saveConfig = () => {
-    localStorage.setItem("role_permissions_config", JSON.stringify(configs));
-    setHasChanges(false);
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+  const saveConfig = async () => {
+    setIsSaving(true);
+    try {
+      // Save each role's permissions
+      for (const role of Object.keys(configs)) {
+        const response = await fetch(`${API_BASE}/api/permissions/${role}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ permissions: configs[role] }),
+        });
+        const data = await response.json();
+        if (!data.success) {
+          toast.error(`Erro ao salvar permissões do perfil ${role}`);
+          return;
+        }
+      }
+      setHasChanges(false);
+      setSaveSuccess(true);
+      toast.success("Permissões salvas com sucesso!");
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error("Error saving permissions:", error);
+      toast.error("Erro ao salvar permissões");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const resetConfig = () => {
-    if (confirm("Tem certeza que deseja resetar todas as configurações?")) {
-      localStorage.removeItem("role_permissions_config");
-      window.location.reload();
+  const resetConfig = async () => {
+    if (confirm("Tem certeza que deseja resetar todas as configurações para os valores padrão?")) {
+      toast.error("Reset não implementado. Recarregue a página para carregar os valores do banco.");
+      fetchPermissions();
     }
   };
 
@@ -454,75 +541,86 @@ export default function ConfigPage() {
                   </button>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Nome
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Email
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Perfil
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Ações
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {users.map((u) => (
-                        <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
-                                {u.fullName.charAt(0).toUpperCase()}
-                              </div>
-                              <div className="font-medium text-gray-900">{u.fullName}</div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                            {u.email}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${
-                                ROLE_COLORS[u.role]
-                              }`}
-                            >
-                              {ROLE_LABELS[u.role]}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => openModal(u)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="Editar usuário"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(u.id)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Deletar usuário"
-                                disabled={u.id === user.id}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {users.length === 0 && (
+                {isLoadingUsers ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                    <span className="ml-3 text-gray-600">Carregando usuários...</span>
+                  </div>
+                ) : users.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
                     Nenhum usuário cadastrado. Clique em "Novo Usuário" para começar.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Login
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Nome
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Email
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Perfil
+                          </th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Ações
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {users.map((u) => (
+                          <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+                                  {u.fullName.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="font-medium text-gray-900">{u.login}</div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                              {u.fullName}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                              {u.email || "-"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${
+                                  ROLE_COLORS[u.role]
+                                }`}
+                              >
+                                {ROLE_LABELS[u.role]}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => openModal(u)}
+                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                  title="Editar usuário"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(u.id)}
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Deletar usuário"
+                                  disabled={u.id === user.id}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
@@ -545,14 +643,19 @@ export default function ConfigPage() {
                     </button>
                     <button
                       onClick={saveConfig}
-                      disabled={!hasChanges}
+                      disabled={!hasChanges || isSaving}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                        hasChanges
+                        hasChanges && !isSaving
                           ? "bg-blue-600 text-white hover:bg-blue-700"
                           : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                     >
-                      {saveSuccess ? (
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : saveSuccess ? (
                         <>
                           <Check className="w-5 h-5" />
                           Salvo!
@@ -564,6 +667,13 @@ export default function ConfigPage() {
                   </div>
                 </div>
 
+                {isLoadingPermissions ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                    <span className="ml-3 text-gray-600">Carregando permissões...</span>
+                  </div>
+                ) : (
+                <>
                 {/* Role Selector */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -669,6 +779,8 @@ export default function ConfigPage() {
                     })}
                   </div>
                 </div>
+                </>
+                )}
               </div>
             )}
           </div>
@@ -692,6 +804,23 @@ export default function ConfigPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {/* Login - only for new users */}
+              {!editingUser && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Login (usuário) *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.login}
+                    onChange={(e) => setFormData({ ...formData, login: e.target.value.toLowerCase().replace(/\s/g, '') })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="ex: joao.silva"
+                    required
+                  />
+                </div>
+              )}
+
               {/* Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -709,14 +838,13 @@ export default function ConfigPage() {
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email *
+                  Email (opcional)
                 </label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
                 />
               </div>
 
@@ -766,14 +894,17 @@ export default function ConfigPage() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  disabled={isSaving}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  disabled={isSaving}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
+                  {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                   {editingUser ? "Salvar" : "Criar"}
                 </button>
               </div>

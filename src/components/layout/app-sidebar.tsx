@@ -77,7 +77,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white overflow-hidden">
                 <Image
-                  src="/backadmin/logo-lusio.jpeg"
+                  src="/logo-lusio.jpeg"
                   alt="Lusio"
                   width={32}
                   height={32}
