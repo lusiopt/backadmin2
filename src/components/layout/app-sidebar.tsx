@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useRouter, usePathname } from "next/navigation";
-import Image from "next/image";
 import {
   FileText,
   Settings,
@@ -76,8 +75,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               onClick={() => router.push("/")}
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white overflow-hidden">
-                <Image
-                  src="/logo-lusio.jpeg"
+                <img
+                  src="/backadmin2/logo-lusio.jpeg"
                   alt="Lusio"
                   width={32}
                   height={32}

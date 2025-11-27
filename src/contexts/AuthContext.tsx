@@ -2,33 +2,35 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { AuthUser, AuthContextType, Permission, ROLE_PERMISSIONS, UserRole } from "@/lib/types";
-import { mockSystemUsers } from "@/lib/mockData";
+import { authStorage } from "@/lib/services/auth";
 
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Provider component
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Initialize with Admin by default to avoid hydration mismatch
-  const [user, setUser] = useState<AuthUser | null>(mockSystemUsers[0]);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [customPermissions, setCustomPermissions] = useState<Record<UserRole, Permission[]> | null>(null);
 
-  // Load user from localStorage on mount (para desenvolvimento)
+  // Load user from Cookies on mount
   useEffect(() => {
     setIsMounted(true);
-    const storedUser = localStorage.getItem("backadmin_user");
+
+    // Load user from Cookies (set by authService.login)
+    const storedUser = authStorage.getUser();
     if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        setUser(parsed);
-      } catch (e) {
-        console.error("Error loading user from localStorage:", e);
-        // Keep default admin user
-      }
-    } else {
-      // Save default Admin to localStorage
-      localStorage.setItem("backadmin_user", JSON.stringify(mockSystemUsers[0]));
+      // Map the API user format to AuthUser format
+      const authUser: AuthUser = {
+        id: storedUser.id,
+        email: storedUser.email,
+        fullName: storedUser.name || storedUser.email,
+        firstName: storedUser.name?.split(' ')[0] || storedUser.email.split('@')[0],
+        role: (storedUser.role as UserRole) || UserRole.BACKOFFICE,
+        active: true,
+        createdAt: new Date().toISOString(),
+      };
+      setUser(authUser);
     }
 
     // Load custom permissions configuration
@@ -42,13 +44,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
   }, []);
-
-  // Save user to localStorage when it changes (only after mounted)
-  useEffect(() => {
-    if (isMounted && user) {
-      localStorage.setItem("backadmin_user", JSON.stringify(user));
-    }
-  }, [user, isMounted]);
 
   // Helper: Get permissions for current user role
   const getRolePermissions = (role: UserRole): Permission[] => {
