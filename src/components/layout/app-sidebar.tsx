@@ -56,6 +56,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { user, hasPermission } = useAuth();
 
+  // Não mostrar sidebar na página de login
+  if (pathname?.includes('/login')) {
+    return null;
+  }
+
   // Filter nav items based on permissions
   const filteredNavItems = navItems.filter((item) => {
     if (item.permission) {
