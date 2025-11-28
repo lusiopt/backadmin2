@@ -45,7 +45,7 @@ export default function DashboardPage() {
     isFetching,
   } = useServices({
     page: 1,
-    limit: 50,
+    limit: 10000,  // Carregar todos para busca funcionar
     status: selectedStatuses.length > 0 ? selectedStatuses[0] : undefined,
     search: search || undefined,
   });

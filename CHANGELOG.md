@@ -7,6 +7,21 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [0.9.1] - 2025-11-28
+
+### ✨ Adicionado
+- **Proxy de documentos**: Endpoint `/api/documents/[serviceId]/[docId]` para URLs frescas
+- **UI de documentos**: Tabela shadcn com DropdownMenu de ações
+
+### 🐛 Corrigido
+- URLs de documentos expiradas (Google Cloud Storage signed URLs)
+
+### 📦 Arquivos Criados/Modificados
+- `src/app/api/documents/[serviceId]/[docId]/route.ts` (novo)
+- `src/components/pedidos/service-modal.tsx` (atualizado)
+
+---
+
 ## [0.9.0] - 2025-11-07
 
 ### ✨ Adicionado

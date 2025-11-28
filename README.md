@@ -182,78 +182,62 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 
 ### Ambiente de Desenvolvimento (DEV)
 
-**Servidor:** 72.61.165.88:3004
-**URL:** http://72.61.165.88:3004/backadmin
+**Servidor:** 72.61.165.88
+**Porta:** 3007
+**URL:** https://dev.lusio.market/backadmin2
 **Branch:** `dev`
+**Gerenciador:** PM2 (`backadmin2-dev`)
 
-#### Processo de Deploy
+#### Deploy com Zero-Downtime (Recomendado)
 
 ```bash
-# Deploy completo (via SSH)
-ssh root@72.61.165.88 "
-  cd /var/www/dev/backadmin && \
-  git pull origin dev && \
-  npm run build && \
-  cp -r .next/static .next/standalone/.next/ && \
-  cp -r public .next/standalone/ && \
-  cp -r src .next/standalone/ && \
-  fuser -k 3004/tcp 2>&1 && \
-  sleep 2 && \
-  cd .next/standalone && \
-  PORT=3004 nohup node server.js > /var/log/backadmin-dev.log 2>&1 & \
-  sleep 3 && \
-  curl -s -o /dev/null -w '%{http_code}' http://localhost:3004/backadmin && \
-  echo ' ✓ Deploy concluído'
-"
+# Deploy completo com PM2 reload (zero-downtime)
+ssh root@72.61.165.88 "cd /var/www/dev/backadmin2 && git pull && npm run build && pm2 reload backadmin2-dev"
 ```
 
 #### Comandos Úteis
 
 ```bash
-# Ver logs do servidor
-ssh root@72.61.165.88 "tail -f /var/log/backadmin-dev.log"
+# Ver logs em tempo real
+ssh root@72.61.165.88 "pm2 logs backadmin2-dev"
 
-# Reiniciar servidor sem rebuild
-ssh root@72.61.165.88 "fuser -k 3004/tcp 2>&1 && cd /var/www/dev/backadmin/.next/standalone && PORT=3004 nohup node server.js > /var/log/backadmin-dev.log 2>&1 &"
+# Ver status do processo
+ssh root@72.61.165.88 "pm2 status backadmin2-dev"
 
-# Verificar status
-ssh root@72.61.165.88 "curl -s -o /dev/null -w '%{http_code}' http://localhost:3004/backadmin"
+# Restart (se necessário)
+ssh root@72.61.165.88 "pm2 restart backadmin2-dev"
+
+# Verificar URL
+curl -s -o /dev/null -w '%{http_code}' https://dev.lusio.market/backadmin2
 ```
 
 #### Estrutura no Servidor
 
 ```
-/var/www/dev/backadmin/
-├── .next/
-│   └── standalone/        # Build em modo standalone
-│       ├── .next/
-│       ├── public/
-│       ├── src/          # Código fonte (runtime)
-│       └── server.js     # Servidor Node.js
+/var/www/dev/backadmin2/
+├── .next/                # Build Next.js
+├── src/                  # Código fonte
+├── public/               # Assets públicos
 ├── .git/                 # Repositório Git
-└── package.json
+├── package.json
+└── node_modules/
 ```
 
 #### Troubleshooting
 
-**Erro: Port already in use**
+**Erro: Processo não responde**
 ```bash
-ssh root@72.61.165.88 "fuser -k 3004/tcp"
+ssh root@72.61.165.88 "pm2 restart backadmin2-dev"
 ```
 
 **Erro: Build failed**
 ```bash
-# Ver logs de build
-ssh root@72.61.165.88 "cd /var/www/dev/backadmin && npm run build 2>&1 | tail -50"
+ssh root@72.61.165.88 "cd /var/www/dev/backadmin2 && npm run build 2>&1 | tail -50"
 ```
 
-**Servidor não responde**
+**Ver logs de erro**
 ```bash
-# Verificar processo
-ssh root@72.61.165.88 "ps aux | grep 'node server.js'"
-
-# Ver logs
-ssh root@72.61.165.88 "tail -100 /var/log/backadmin-dev.log"
+ssh root@72.61.165.88 "pm2 logs backadmin2-dev --lines 100"
 ```
 
 ## 🔌 Integração com Backend
@@ -566,33 +550,19 @@ O backend (`luzio-api`) é mantido por equipe terceirizada.
 
 ## 🚀 Deploy
 
-### Deploy Automatizado (Recomendado)
+### Deploy Rápido (Recomendado)
 
 ```bash
-# Na VPS, execute o script de deploy:
-ssh root@72.61.165.88 'cd /var/www/dev/backadmin && ./deploy.sh'
+# Deploy com zero-downtime via PM2
+ssh root@72.61.165.88 "cd /var/www/dev/backadmin2 && git pull && npm run build && pm2 reload backadmin2-dev"
 ```
 
-O script faz automaticamente:
+O comando faz automaticamente:
 1. ✅ Pull das mudanças do Git
-2. ✅ Instala dependências
-3. ✅ Faz build otimizado
-4. ✅ **Copia assets (static + public) para standalone**
-5. ✅ Reinicia o serviço systemd
+2. ✅ Faz build otimizado
+3. ✅ Reload sem downtime (PM2)
 
-### ⚠️ Importante: Build Standalone
-
-O Next.js standalone **NÃO copia automaticamente** os arquivos `static` e `public`.
-**Sempre execute** após `npm run build`:
-
-```bash
-cp -r .next/static .next/standalone/.next/
-cp -r public .next/standalone/
-```
-
-Se não fizer isso, o CSS e as imagens não carregarão! 🚨
-
-### Deploy Manual
+### Deploy Manual (Passo a Passo)
 
 ```bash
 # 1. Fazer commit e push local
@@ -600,49 +570,42 @@ git add .
 git commit -m "feat: sua mudança"
 git push origin dev
 
-# 2. Na VPS
-ssh root@72.61.165.88
-cd /var/www/dev/backadmin
-git pull origin dev
-npm install
-npm run build
+# 2. Na VPS - deploy
+ssh root@72.61.165.88 "cd /var/www/dev/backadmin2 && git pull && npm run build && pm2 reload backadmin2-dev"
 
-# 3. COPIAR ASSETS (CRUCIAL!)
-cp -r .next/static .next/standalone/.next/
-cp -r public .next/standalone/
-
-# 4. Reiniciar serviço
-systemctl restart backadmin-dev
-
-# 5. Verificar
-systemctl status backadmin-dev
+# 3. Verificar
+ssh root@72.61.165.88 "pm2 status backadmin2-dev"
 ```
 
 ### Verificar se Deploy Funcionou
 
 ```bash
-# Acessar a URL
-https://dev.lusio.market/backadmin
+# Testar URL (deve retornar 200)
+curl -sL -o /dev/null -w '%{http_code}' https://dev.lusio.market/backadmin2
 
-# Se o CSS não carregar, execute:
-ssh root@72.61.165.88 'cd /var/www/dev/backadmin && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/ && systemctl restart backadmin-dev'
+# Ver logs se houver problema
+ssh root@72.61.165.88 "pm2 logs backadmin2-dev --lines 50"
 ```
 
 ## 🐛 Debug
 
 ```bash
-# Ver logs do serviço
-ssh root@72.61.165.88 'journalctl -u backadmin-dev -f'
+# Ver logs do PM2 em tempo real
+ssh root@72.61.165.88 "pm2 logs backadmin2-dev"
+
+# Ver últimas 100 linhas de log
+ssh root@72.61.165.88 "pm2 logs backadmin2-dev --lines 100"
+
+# Ver status detalhado
+ssh root@72.61.165.88 "pm2 show backadmin2-dev"
+
+# Monitoramento em tempo real (CPU, memória)
+ssh root@72.61.165.88 "pm2 monit"
 
 # Ver logs do React Query
 # DevTools aparecem no canto inferior direito em dev
 
-# Testar API manualmente
-curl http://localhost:3000/service \
-  -H "Authorization: Bearer TOKEN"
-
-# Ver estado do React Query
-# Abrir console do navegador
+# Ver estado do React Query (console do navegador)
 window.__REACT_QUERY_STATE__
 ```
 
