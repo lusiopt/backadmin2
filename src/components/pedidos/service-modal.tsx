@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, memo } from "react";
 import { ServiceWithRelations, ServiceStatus, Permission, CreateMessageInput, Message, MessageType, MessageStatus } from "@/lib/types";
 import { useServices } from "@/contexts/ServicesContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useService } from "@/hooks/services/useService";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { MessageThread } from "@/components/MessageThread";
-import { FileText, File, MessageSquare, Zap, Calendar, Pencil, Save, X, Check, Clock, Paperclip, AlertTriangle, Plus, RefreshCw, Scale, Banknote, Building, Send, User, Upload, FileCheck, CreditCard, UserCheck } from "lucide-react";
+import { FileText, File, MessageSquare, Zap, Calendar, Pencil, Save, X, Check, Clock, Paperclip, AlertTriangle, Plus, RefreshCw, Scale, Banknote, Building, Send, User, Upload, FileCheck, CreditCard, UserCheck, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface ServiceModalProps {
@@ -28,11 +29,23 @@ interface ServiceModalProps {
 export const ServiceModal = memo(function ServiceModal({ service: initialService, open, onClose }: ServiceModalProps) {
   const { getService, updateService } = useServices();
 
+  // Buscar detalhes completos do serviço (incluindo documentos) quando modal abre
+  const { data: serviceDetail, isLoading: isLoadingDetails } = useService(open ? initialService.id : undefined);
+
   // Ref para evitar re-renders desnecessários no useEffect
   const updateServiceRef = useRef(updateService);
   updateServiceRef.current = updateService;
   const { user, hasPermission } = useAuth();
-  const service = getService(initialService.id) || initialService;
+
+  // Priorizar dados do contexto (para atualizações locais como messages)
+  // mas usar dados da API para documentos (que só vêm no endpoint de detalhe)
+  const contextService = getService(initialService.id);
+  const service = {
+    ...(contextService || initialService),
+    // Sobrescrever documentos com os dados da API detalhada (se disponível)
+    documents: serviceDetail?.service?.documents || contextService?.documents || initialService.documents || [],
+    documentsAttorney: serviceDetail?.service?.documentsAttorney || contextService?.documentsAttorney || initialService.documentsAttorney || [],
+  };
 
   const [activeTab, setActiveTab] = useState("acoes");
   const [isEditingClient, setIsEditingClient] = useState(false);
@@ -421,7 +434,10 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
               {/* TAB: Documentos */}
               <TabsContent value="documentos" className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">Documentos ({service.documents?.length || 0})</h3>
+                  <h3 className="font-semibold flex items-center gap-2">
+                    Documentos ({service.documents?.length || 0})
+                    {isLoadingDetails && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                  </h3>
                   {/* Only users with UPLOAD_DOCUMENTS permission can upload */}
                   {hasPermission(Permission.UPLOAD_DOCUMENTS) && (
                     <div>
@@ -531,6 +547,11 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                         </div>
                       </div>
                     ))}
+                  </div>
+                ) : isLoadingDetails ? (
+                  <div className="flex flex-col items-center justify-center py-8 gap-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Carregando documentos...</p>
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground py-8 text-center">
