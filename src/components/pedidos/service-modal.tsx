@@ -530,16 +530,16 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  {hasPermission(Permission.VIEW_DOCUMENTS) && doc.url && (
-                                    <DropdownMenuItem onClick={() => window.open(doc.url, '_blank')}>
+                                  {hasPermission(Permission.VIEW_DOCUMENTS) && (
+                                    <DropdownMenuItem onClick={() => window.open(`/api/documents/${service.id}/${doc.id}`, '_blank')}>
                                       <Eye className="h-4 w-4 mr-2" />
                                       Ver documento
                                     </DropdownMenuItem>
                                   )}
-                                  {hasPermission(Permission.VIEW_DOCUMENTS) && doc.url && (
+                                  {hasPermission(Permission.VIEW_DOCUMENTS) && (
                                     <DropdownMenuItem onClick={() => {
                                       const a = document.createElement('a');
-                                      a.href = doc.url;
+                                      a.href = `/api/documents/${service.id}/${doc.id}`;
                                       a.download = doc.name || 'documento';
                                       a.click();
                                     }}>
