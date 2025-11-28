@@ -91,6 +91,43 @@ export interface ApiServiceDetailResponse {
 }
 
 // =====================================================
+// HELPERS
+// =====================================================
+
+/**
+ * Extrai URL e nome do arquivo do campo attachment da API
+ *
+ * A API retorna o attachment no formato: "filename(url)"
+ * Ex: "certidão.pdf(https://storage.googleapis.com/...?signature=...)"
+ *
+ * @returns { url: string, filename: string }
+ */
+export function parseAttachment(attachment: string | null): { url: string; filename: string } {
+  if (!attachment) {
+    return { url: '', filename: '' };
+  }
+
+  // Formato: filename(url) - onde url pode conter parênteses encoded
+  // Procurar pelo primeiro "(" seguido de "http"
+  const match = attachment.match(/^(.+?)\((https?:\/\/.+)\)$/);
+
+  if (match) {
+    return {
+      filename: match[1].trim(),
+      url: match[2],
+    };
+  }
+
+  // Se não conseguir parsear, verificar se é URL direta
+  if (attachment.startsWith('http://') || attachment.startsWith('https://')) {
+    return { url: attachment, filename: '' };
+  }
+
+  // Fallback: retornar como está
+  return { url: attachment, filename: '' };
+}
+
+// =====================================================
 // ADAPTERS
 // =====================================================
 
@@ -99,14 +136,16 @@ export interface ApiServiceDetailResponse {
  *
  * Diferenças principais:
  * - API: 'title' → Local: 'name'
- * - API: 'attachment' (signed URL) → Local: 'url'
+ * - API: 'attachment' no formato "filename(url)" → Local: 'url' (apenas URL)
  * - API: 'createdAt' → Local: 'uploadedAt'
  */
 export function adaptDocument(apiDoc: ApiDocument, serviceId?: string): Document {
+  const { url, filename } = parseAttachment(apiDoc.attachment);
+
   return {
     id: apiDoc.id,
-    name: apiDoc.title || 'Documento sem título', // API usa 'title'
-    url: apiDoc.attachment || '', // Signed URL pública (expira em 1h)
+    name: apiDoc.title || filename || 'Documento sem título',
+    url: url, // URL extraída do formato filename(url)
     title: apiDoc.title,
     number: apiDoc.number,
     type: undefined, // NÃO existe na API
@@ -126,10 +165,12 @@ export function adaptDocument(apiDoc: ApiDocument, serviceId?: string): Document
  * Adapta documento do advogado da API para formato local
  */
 export function adaptDocumentAttorney(apiDoc: any, serviceId?: string): DocumentAttorney {
+  const { url, filename } = parseAttachment(apiDoc.attachment || apiDoc.url);
+
   return {
     id: apiDoc.id,
-    name: apiDoc.title || apiDoc.name || 'Documento',
-    url: apiDoc.attachment || apiDoc.url || '',
+    name: apiDoc.title || apiDoc.name || filename || 'Documento',
+    url: url,
     size: apiDoc.size,
     uploadedAt: apiDoc.createdAt,
     serviceId: serviceId || '',
