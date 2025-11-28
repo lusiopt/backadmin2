@@ -28,7 +28,9 @@ export function MobileServiceCard({
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-semibold text-gray-900 truncate">
-            {service.user?.fullName || 'N/A'}
+            {service.person
+              ? `${service.person.firstName || ''} ${service.person.lastName || ''}`.trim() || 'N/A'
+              : service.user?.fullName || 'N/A'}
           </h3>
         </div>
         <StatusBadge status={service.status} />

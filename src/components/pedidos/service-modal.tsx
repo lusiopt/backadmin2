@@ -225,7 +225,11 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
           <SheetHeader className="px-6 pt-6 pb-4 border-b">
             <div className="flex items-start justify-between pr-8">
               <div>
-                <SheetTitle>{service.user?.fullName || 'N/A'}</SheetTitle>
+                <SheetTitle>
+                  {service.person
+                    ? `${service.person.firstName || ''} ${service.person.lastName || ''}`.trim() || 'N/A'
+                    : service.user?.fullName || 'N/A'}
+                </SheetTitle>
                 <p className="text-sm text-muted-foreground mt-1">{service.user?.email || 'N/A'}</p>
               </div>
               <div className="flex gap-2 items-center">

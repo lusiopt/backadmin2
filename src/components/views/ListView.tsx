@@ -108,7 +108,9 @@ export function ListView({
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
-                      {service.user?.fullName || 'N/A'}
+                      {service.person
+                        ? `${service.person.firstName || ''} ${service.person.lastName || ''}`.trim() || 'N/A'
+                        : service.user?.fullName || 'N/A'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
