@@ -265,21 +265,10 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold">Dados do Requerente</h3>
                   {/* Only users with EDIT_SERVICE permission can edit */}
-                  {hasPermission(Permission.EDIT_SERVICE) && (
-                    !isEditingClient ? (
-                      <Button onClick={() => setIsEditingClient(true)} size="sm" variant="outline" className="gap-1.5">
-                        <Pencil className="h-4 w-4" /> Editar
-                      </Button>
-                    ) : (
-                      <div className="flex gap-2">
-                        <Button onClick={handleSaveClientEdit} size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700">
-                          <Save className="h-4 w-4" /> Salvar
-                        </Button>
-                        <Button onClick={() => setIsEditingClient(false)} size="sm" variant="outline" className="gap-1.5">
-                          <X className="h-4 w-4" /> Cancelar
-                        </Button>
-                      </div>
-                    )
+                  {hasPermission(Permission.EDIT_SERVICE) && !isEditingClient && (
+                    <Button onClick={() => setIsEditingClient(true)} size="sm" variant="outline" className="gap-1.5">
+                      <Pencil className="h-4 w-4" /> Editar
+                    </Button>
                   )}
                 </div>
 
@@ -923,9 +912,20 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
           </Tabs>
 
           <SheetFooter className="px-6 py-4 border-t">
-            <Button onClick={onClose} variant="outline">
-              Fechar
-            </Button>
+            {isEditingClient ? (
+              <div className="flex gap-2 w-full">
+                <Button onClick={handleSaveClientEdit} className="flex-1 bg-green-600 hover:bg-green-700">
+                  <Save className="h-4 w-4 mr-2" /> Salvar
+                </Button>
+                <Button onClick={() => setIsEditingClient(false)} variant="outline" className="flex-1">
+                  <X className="h-4 w-4 mr-2" /> Cancelar
+                </Button>
+              </div>
+            ) : (
+              <Button onClick={onClose} variant="outline">
+                Fechar
+              </Button>
+            )}
           </SheetFooter>
         </SheetContent>
       </Sheet>
