@@ -17,7 +17,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { MessageThread } from "@/components/MessageThread";
-import { FileText, File, MessageSquare, Zap, Calendar, Pencil, Save, X, Check, Clock, Paperclip, AlertTriangle, Plus, RefreshCw, Scale, Banknote, Building, Send, User, Upload, FileCheck, CreditCard, UserCheck, Loader2 } from "lucide-react";
+import { FileText, File, MessageSquare, Zap, Calendar, Pencil, Save, X, Check, Clock, Paperclip, AlertTriangle, Plus, RefreshCw, Scale, Banknote, Building, Send, User, Upload, FileCheck, CreditCard, UserCheck, Loader2, ExternalLink, MoreHorizontal, Trash2, Eye } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import toast from "react-hot-toast";
 
 interface ServiceModalProps {
@@ -480,73 +482,93 @@ export const ServiceModal = memo(function ServiceModal({ service: initialService
                   )}
                 </div>
                 {service.documents && service.documents.length > 0 ? (
-                  <div className="space-y-2">
-                    {service.documents.map((doc) => (
-                      <div key={doc.id} className="p-3 bg-muted rounded hover:bg-muted/80">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 space-y-2">
-                            {/* Title and Approval Status */}
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium">
-                                {doc.title || doc.name}
-                              </span>
-                              {doc.approved !== null && doc.approved !== undefined && (
-                                <span className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 ${doc.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                  {doc.approved ? <><Check className="h-3 w-3" /> Aprovado</> : <><Clock className="h-3 w-3" /> Pendente</>}
-                                </span>
-                              )}
-                            </div>
-
-                            {/* File name (if different from title) */}
-                            {doc.title && doc.title !== doc.name && (
-                              <p className="text-xs text-muted-foreground">
-                                Arquivo: {doc.name}
-                              </p>
-                            )}
-
-                            {/* Document metadata grid */}
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                              {doc.number && (
-                                <div><span className="font-medium">Número:</span> {doc.number}</div>
-                              )}
-                              {doc.issuedBy && (
-                                <div><span className="font-medium">Emissor:</span> {doc.issuedBy}</div>
-                              )}
-                              {doc.issuedAt && (
-                                <div><span className="font-medium">Emissão:</span> {formatDate(doc.issuedAt)}</div>
-                              )}
-                              {doc.expiresAt && (
-                                <div><span className="font-medium">Validade:</span> {formatDate(doc.expiresAt)}</div>
-                              )}
-                              {doc.uploadedAt && (
-                                <div><span className="font-medium">Upload:</span> {formatDate(doc.uploadedAt)}</div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Action buttons */}
-                          <div className="flex gap-2 flex-shrink-0">
-                            {hasPermission(Permission.VIEW_DOCUMENTS) && (
-                              <button className="text-xs text-primary hover:underline">Ver</button>
-                            )}
-                            {hasPermission(Permission.DELETE_DOCUMENTS) && (
-                              <button
-                                onClick={() => {
-                                  if (confirm(`Remover ${doc.name}?`)) {
-                                    updateService(service.id, {
-                                      documents: service.documents?.filter(d => d.id !== doc.id)
-                                    });
-                                  }
-                                }}
-                                className="text-xs text-red-600 hover:underline"
-                              >
-                                Remover
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[300px]">Documento</TableHead>
+                          <TableHead className="hidden sm:table-cell">Número</TableHead>
+                          <TableHead className="hidden sm:table-cell">Validade</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="w-[50px]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {service.documents.map((doc) => (
+                          <TableRow key={doc.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <div className="min-w-0">
+                                  <p className="font-medium text-sm truncate" title={doc.title || doc.name}>
+                                    {doc.title || doc.name}
+                                  </p>
+                                  {doc.uploadedAt && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {formatDate(doc.uploadedAt)}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
+                              {doc.number || '-'}
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
+                              {doc.expiresAt ? formatDate(doc.expiresAt) : '-'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={doc.approved ? "default" : "secondary"} className={doc.approved ? "bg-green-100 text-green-700 hover:bg-green-100" : "bg-yellow-100 text-yellow-700 hover:bg-yellow-100"}>
+                                {doc.approved ? 'Aprovado' : 'Pendente'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  {hasPermission(Permission.VIEW_DOCUMENTS) && doc.url && (
+                                    <DropdownMenuItem onClick={() => window.open(doc.url, '_blank')}>
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      Ver documento
+                                    </DropdownMenuItem>
+                                  )}
+                                  {hasPermission(Permission.VIEW_DOCUMENTS) && doc.url && (
+                                    <DropdownMenuItem onClick={() => {
+                                      const a = document.createElement('a');
+                                      a.href = doc.url;
+                                      a.download = doc.name || 'documento';
+                                      a.click();
+                                    }}>
+                                      <ExternalLink className="h-4 w-4 mr-2" />
+                                      Baixar
+                                    </DropdownMenuItem>
+                                  )}
+                                  {hasPermission(Permission.DELETE_DOCUMENTS) && (
+                                    <DropdownMenuItem
+                                      className="text-red-600"
+                                      onClick={() => {
+                                        if (confirm(`Remover ${doc.name}?`)) {
+                                          updateService(service.id, {
+                                            documents: service.documents?.filter(d => d.id !== doc.id)
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Remover
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 ) : isLoadingDetails ? (
                   <div className="flex flex-col items-center justify-center py-8 gap-2">
